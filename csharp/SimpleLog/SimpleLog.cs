@@ -1,4 +1,4 @@
-// Copyright 2023 SGrottel (www.sgrottel.de)
+// Copyright 2022-2023 SGrottel (www.sgrottel.de)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -262,6 +262,10 @@ namespace SGrottel
 			if (string.IsNullOrWhiteSpace(directory)) throw new ArgumentException("directory");
 			if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("name");
 			if (retention < 2) throw new ArgumentException("retention");
+
+			// TODO: Cross-Process Mutex Lock
+			//   Can we already move log files which are still in use by another process?
+			//   Can we get how many handles are open on a file?
 
 			if (!Directory.Exists(directory))
 			{

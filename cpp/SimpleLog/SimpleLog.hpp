@@ -1,4 +1,4 @@
-﻿// Copyright 2022-2023 SGrottel (www.sgrottel.de)
+// Copyright 2022-2023 SGrottel (www.sgrottel.de)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -18,33 +18,38 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-using SGrottel;
-using System.Reflection;
+// Version: 2.?.?
 
-internal class Program
+namespace sgrottel
 {
-	private static void Main(string[] args)
+
+	/// <summary>
+	/// Abstract interface class for writing a message
+	/// </summary>
+	class ISimpleLog
 	{
-		var asm = Assembly.GetExecutingAssembly();
 
-		string logDir = Path.Combine(Path.GetDirectoryName(asm.Location) ?? ".", "log");
-		string logName = Path.GetFileNameWithoutExtension(asm.Location);
+		// TODO: Implement
 
-		EchoingSimpleLog log = new(logDir, logName, 4);
+	};
 
-		SimpleLog.Write(log, "Started {0:u}", DateTime.Now);
+	/// <summary>
+	/// SimpleLog implementation
+	/// </summary>
+	class SimpleLog : public ISimpleLog
+	{
 
-		SimpleLog.Write(log, "Default Directory: {0}", SimpleLog.GetDefaultDirectory());
-		SimpleLog.Write(log, "Default Name: {0}", SimpleLog.GetDefaultName());
-		SimpleLog.Write(log, "Default Retention: {0}", SimpleLog.GetDefaultRetention());
+		// TODO: Implement
 
-		log.Write("And now for something completely different:");
-		SimpleLog.Error(log, "An Error");
-		SimpleLog.Warning(log, "A Warning");
-		SimpleLog.Write(log, "And a normal Message");
+	};
 
-		SimpleLog.Write(log, "Formatting away: {0} {1} {2} {3} {4}", new object[]{ "The", "quick", "Fox", "doesn't", "care!"});
+	/// <summary>
+	/// Extention to SimpleLog which, which echoes all messages to the console
+	/// </summary>
+	class EchoingSimpleLog : public SimpleLog
+	{
 
-		log.Write("Done.");
-	}
+		// TODO: Implement
+
+	};
 }

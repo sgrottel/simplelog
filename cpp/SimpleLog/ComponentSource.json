@@ -1,0 +1,18 @@
+{
+	"_type": "ComponentSourceManifest",
+	"_version": 1,
+	"components": [
+		{
+			"name": "SGrottel SimpleLog Cpp",
+			"source": [
+				{
+					"type": "git",
+					"url": "https://www.github.com/sgrottel/tiny-tools-collection",
+					"hash": "?",
+					"version": "2.?.?",
+					"path": "SimpleLog/cpp/SimpleLog"
+				}
+			]
+		}
+	]
+}
