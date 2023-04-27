@@ -312,14 +312,22 @@ namespace SGrottel
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		public virtual void Write(uint flags, string message)
 		{
-			if (writer == null) return;
-			string type = "";
-			if ((flags & ISimpleLog.FlagError) == ISimpleLog.FlagError) type = "ERROR";
-			else if ((flags & ISimpleLog.FlagWarning) == ISimpleLog.FlagWarning) type = "WARNING";
-			writer.WriteLine("{0:u}|{2} {1}", DateTime.Now, message, type);
-			writer.Flush();
+			lock (threadLock)
+			{
+				if (writer == null) return;
+				string type = "";
+				if ((flags & ISimpleLog.FlagError) == ISimpleLog.FlagError) type = "ERROR";
+				else if ((flags & ISimpleLog.FlagWarning) == ISimpleLog.FlagWarning) type = "WARNING";
+				writer.WriteLine("{0:u}|{2} {1}", DateTime.Now, message, type);
+				writer.Flush();
+			}
 		}
 		#endregion
+
+		/// <summary>
+		/// Object used to thread-lock all output
+		/// </summary>
+		protected object threadLock = new object();
 
 	}
 
@@ -366,25 +374,28 @@ namespace SGrottel
 		public override void Write(uint flags, string message)
 		{
 			base.Write(flags, message);
-			bool isError = (flags & ISimpleLog.FlagError) == ISimpleLog.FlagError;
-			bool isWarning = (flags & ISimpleLog.FlagWarning) == ISimpleLog.FlagWarning;
+			lock (threadLock)
+			{
+				bool isError = (flags & ISimpleLog.FlagError) == ISimpleLog.FlagError;
+				bool isWarning = (flags & ISimpleLog.FlagWarning) == ISimpleLog.FlagWarning;
 
-			if (UseColor && isError)
-			{
-				Console.BackgroundColor = ConsoleColor.Black;
-				Console.ForegroundColor = ConsoleColor.Red;
-			}
-			else if (UseColor && isWarning)
-			{
-				Console.BackgroundColor = ConsoleColor.Black;
-				Console.ForegroundColor = ConsoleColor.Yellow;
-			}
+				if (UseColor && isError)
+				{
+					Console.BackgroundColor = ConsoleColor.Black;
+					Console.ForegroundColor = ConsoleColor.Red;
+				}
+				else if (UseColor && isWarning)
+				{
+					Console.BackgroundColor = ConsoleColor.Black;
+					Console.ForegroundColor = ConsoleColor.Yellow;
+				}
 
 			((UseErrorOut && (isError || isWarning)) ? Console.Error : Console.Out).WriteLine(message);
 
-			if (UseColor && (isError || isWarning))
-			{
-				Console.ResetColor();
+				if (UseColor && (isError || isWarning))
+				{
+					Console.ResetColor();
+				}
 			}
 		}
 	}

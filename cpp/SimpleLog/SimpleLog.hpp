@@ -27,6 +27,7 @@
 #include <memory>
 #include <cstdlib>
 #include <ctime>
+#include <mutex>
 
 #if !(defined(_WINDOWS_) || defined(_INC_WINDOWS))
 #define WIN32_LEAN_AND_MEAN
@@ -133,6 +134,13 @@ namespace sgrottel
 			localtime_s(&now, &t);
 			return formatString(L"%d-%.2d-%.2d %.2d:%.2d:%.2dZ", now.tm_year + 1900, now.tm_mon + 1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
 		}
+
+	protected:
+
+		/// <summary>
+		/// Mutex used to thread-lock all output
+		/// </summary>
+		std::mutex m_threadLock;
 
 	public:
 
@@ -284,6 +292,7 @@ namespace sgrottel
 
 		virtual ~SimpleLog()
 		{
+			std::lock_guard<std::mutex> lock{m_threadLock};
 
 			// SGR TODO: Implement
 
@@ -322,6 +331,7 @@ namespace sgrottel
 		/// If set less than zero, the message string is treated being zero terminated.</param>
 		virtual void Write(uint32_t flags, char const* message, int messageLength = -1) override
 		{
+			std::lock_guard<std::mutex> lock{m_threadLock};
 
 			// SGR TODO: Implement
 
@@ -336,6 +346,7 @@ namespace sgrottel
 		/// If set less than zero, the message string is treated being zero terminated.</param>
 		virtual void Write(uint32_t flags, wchar_t const* message, int messageLength = -1) override
 		{
+			std::lock_guard<std::mutex> lock{m_threadLock};
 
 			// SGR TODO: Implement
 
@@ -376,11 +387,14 @@ namespace sgrottel
 		/// If set less than zero, the message string is treated being zero terminated.</param>
 		virtual void Write(uint32_t flags, char const* message, int messageLength = -1) override
 		{
-			if (messageLength < 0)
-				printf("%s\n", message);
-			else
-				printf("%.*s\n", messageLength, message);
 			SimpleLog::Write(flags, message, messageLength);
+			{
+				std::lock_guard<std::mutex> lock{m_threadLock};
+				if (messageLength < 0)
+					printf("%s\n", message);
+				else
+					printf("%.*s\n", messageLength, message);
+			}
 		}
 
 		/// <summary>
@@ -392,11 +406,14 @@ namespace sgrottel
 		/// If set less than zero, the message string is treated being zero terminated.</param>
 		virtual void Write(uint32_t flags, wchar_t const* message, int messageLength = -1) override
 		{
-			if (messageLength < 0)
-				wprintf(L"%s\n", message);
-			else
-				wprintf(L"%.*s\n", messageLength, message);
 			SimpleLog::Write(flags, message, messageLength);
+			{
+				std::lock_guard<std::mutex> lock{m_threadLock};
+				if (messageLength < 0)
+					wprintf(L"%s\n", message);
+				else
+					wprintf(L"%.*s\n", messageLength, message);
+			}
 		}
 
 		// additional overloads of `Write` in varallel to the two overrides
