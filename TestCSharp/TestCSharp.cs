@@ -28,9 +28,8 @@ internal class TestCSharp
 		var asm = Assembly.GetExecutingAssembly();
 
 		string logDir = Path.Combine(Path.GetDirectoryName(asm.Location) ?? ".", "log");
-		string logName = Path.GetFileNameWithoutExtension(asm.Location);
 
-		EchoingSimpleLog log = new(logDir, logName, 4);
+		EchoingSimpleLog log = new(logDir, "TestSimpleLog", 4);
 
 		SimpleLog.Write(log, "Started {0:u}", DateTime.Now);
 
