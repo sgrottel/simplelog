@@ -21,7 +21,7 @@
 using SGrottel;
 using System.Reflection;
 
-internal class Program
+internal class TestCSharp
 {
 	private static void Main(string[] args)
 	{

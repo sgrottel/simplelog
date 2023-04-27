@@ -24,18 +24,36 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
 
 int wmain(int argc, wchar_t const* argv[])
 {
 	using sgrottel::SimpleLog;
 
-	sgrottel::EchoingSimpleLog log;
+	wchar_t filenameBuf[MAX_PATH + 1];
+	DWORD filenameLen = GetModuleFileNameW(nullptr, filenameBuf, MAX_PATH);
+	std::filesystem::path exename{filenameBuf, filenameBuf + filenameLen};
 
-	SimpleLog::Write(log, "Started %s", SimpleLog::TimeStampA().c_str());
+	std::filesystem::path logDir = exename.parent_path() / "log";
+	std::filesystem::path logName = exename.filename().replace_extension();
+
+	sgrottel::EchoingSimpleLog log{ logDir.generic_wstring(), logName.generic_string(), 4 };
+
+	time_t t = std::time(nullptr);
+	struct tm now;
+	localtime_s(&now, &t);
+	std::stringstream timestamp;
+	timestamp << (now.tm_year + 1900)
+		<< "-" << std::setfill('0') << std::setw(2) << (now.tm_mon + 1)
+		<< "-" << std::setfill('0') << std::setw(2) << now.tm_mday
+		<< " " << std::setfill('0') << std::setw(2) << now.tm_hour
+		<< ":" << std::setfill('0') << std::setw(2) << now.tm_min
+		<< ":" << std::setfill('0') << std::setw(2) << now.tm_sec << "Z";
+	SimpleLog::Write(log, "Started %s", timestamp.str().c_str());
 
 	SimpleLog::Write(log, L"Default Directory: %s", SimpleLog::GetDefaultDirectory().generic_wstring().c_str());
 	SimpleLog::Write(log, "Default Name: %s", SimpleLog::GetDefaultName().generic_string().c_str());
-	SimpleLog::Write(log, L"Default Retention: %s", SimpleLog::GetDefaultRetention());
+	SimpleLog::Write(log, L"Default Retention: %d", SimpleLog::GetDefaultRetention());
 
 	PrintMessage(log, L"And now for something completely different:");
 	SimpleLog::Error(log, "An Error");
@@ -46,5 +64,5 @@ int wmain(int argc, wchar_t const* argv[])
 
 	SimpleLog::Write(log, L"Arg: %s", (argc > 1) ? argv[1] : L"none");
 
-	log.Write("Done.");
+	log.Write("Done.XYZ", 5);
 }

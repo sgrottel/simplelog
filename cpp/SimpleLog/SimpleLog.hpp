@@ -20,13 +20,20 @@
 
 // Version: 2.?.?
 
-#include <cstdint> // uint32_t
-#include <cstdio>  // snprintf, console output
+#include <cstdint>
+#include <cstdio>
 #include <string>
 #include <filesystem>
+#include <memory>
+#include <cstdlib>
+#include <ctime>
 
-//#include <iomanip>
-//#include <sstream>
+#if !(defined(_WINDOWS_) || defined(_INC_WINDOWS))
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
+#include <Windows.h>
+#endif
+#include <psapi.h>
 
 namespace sgrottel
 {
@@ -95,12 +102,36 @@ namespace sgrottel
 		template<typename ...PARAMS>
 		static std::string formatString(char const* format, PARAMS&&... params)
 		{
-			return "C";
+			// Visual studio specific
+			size_t bufSize = _scprintf(format, params...) + 1;
+			std::shared_ptr<char> buf{ new char[bufSize], [](char* p) { delete[] p; }};
+			size_t end = sprintf_s(buf.get(), bufSize, format, params...);
+			buf.get()[(end > 0 && end < bufSize) ? end : 0] = 0;
+			return buf.get();
 		}
 		template<typename ...PARAMS>
 		static std::wstring formatString(wchar_t const* format, PARAMS&&... params)
 		{
-			return L"W";
+			// Visual studio specific
+			size_t bufSize = _scwprintf(format, params...) + 1;
+			std::shared_ptr<wchar_t> buf{ new wchar_t[bufSize], [](wchar_t* p) { delete[] p; }};
+			size_t end = swprintf_s(buf.get(), bufSize, format, params...);
+			buf.get()[(end > 0 && end < bufSize) ? end : 0] = 0;
+			return buf.get();
+		}
+		static std::string timeStampA()
+		{
+			time_t t = std::time(nullptr);
+			struct tm now;
+			localtime_s(&now, &t);
+			return formatString("%d-%.2d-%.2d %.2d:%.2d:%.2dZ", now.tm_year + 1900, now.tm_mon + 1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
+		}
+		static std::wstring timeStampW()
+		{
+			time_t t = std::time(nullptr);
+			struct tm now;
+			localtime_s(&now, &t);
+			return formatString(L"%d-%.2d-%.2d %.2d:%.2d:%.2dZ", now.tm_year + 1900, now.tm_mon + 1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
 		}
 
 	public:
@@ -165,6 +196,20 @@ namespace sgrottel
 
 #if 1 /* REGION: default configuration values */
 
+		/// <summary>
+		/// Returns the default directory where log files are stored.
+		///
+		/// These locations are tested in this priority order:
+		/// 1) "%appdata%\LocalLow\sgrottel_simplelog"
+		/// 2) "logs" subfolder of the localion of the process' executing assembly
+		/// 3) the localion of the process' executing assembly
+		/// 4) "logs" subfolder of the current working directory
+		/// 5) the current working directory
+		/// </summary>
+		/// <returns>The default path where log files are stored</returns>
+		/// <remarks>The function creates folders and files to test access rights. It removes all files and folders again.
+		/// If the file system access rights allow for creation but not for deletion, empty test files or folders might stay behind.
+		/// </remarks>
 		static std::filesystem::path GetDefaultDirectory()
 		{
 			// SGR TODO: Implement
@@ -172,49 +217,77 @@ namespace sgrottel
 			return "";
 		}
 
+		/// <summary>
+		/// Determines the default name for log files of this process.
+		/// The value is based on the process' executing assembly.
+		/// </summary>
+		/// <returns>The default name for log files of this process</returns>
 		static std::filesystem::path GetDefaultName()
 		{
-			// SGR TODO: Implement
+			wchar_t filename[MAX_PATH + 1];
+			DWORD filenameLen = GetModuleFileNameW(nullptr, filename, MAX_PATH);
+			if (filenameLen > 0)
+			{
+				return std::filesystem::path{filename, filename + filenameLen}.filename().replace_extension();
+			}
+			filenameLen = GetProcessImageFileNameW(GetCurrentProcess(), filename, MAX_PATH);
+			if (filenameLen > 0)
+			{
+				return std::filesystem::path{filename, filename + filenameLen}.filename().replace_extension();
+			}
 
-			return "";
+			if (__argv != nullptr && __argv[0] != nullptr && __argv[0][0] != 0)
+			{
+				return std::filesystem::path{__argv[0]}.filename().replace_extension();
+			}
+			if (__wargv != nullptr && __wargv[0] != nullptr && __wargv[0][0] != 0)
+			{
+				return std::filesystem::path{__wargv[0]}.filename().replace_extension();
+			}
+
+			return std::to_string(GetCurrentProcessId());
 		}
 
+		/// <summary>
+		/// Gets the default retention, i.e. how many previous log files are kept in the target directory in addition to the current log file
+		/// </summary>
+		/// <returns>The default log file retention count.</returns>
 		static inline constexpr int const GetDefaultRetention()
 		{
 			return 10;
 		}
 
-		static std::string TimeStampA()
-		{
-			// SGR TODO: Implement
-
-			//std::ostringstream oss;
-			//auto t = std::time(nullptr);
-			//auto tm = *std::localtime(&t);
-			//oss << std::put_time(&tm, "%Y-%m-%d %H-%M-%S");
-
-			return "now";
-		}
-
-		static std::wstring TimeStampW()
-		{
-			// SGR TODO: Implement
-
-			//std::ostringstream oss;
-			//auto t = std::time(nullptr);
-			//auto tm = *std::localtime(&t);
-			//oss << std::put_time(&tm, "%Y-%m-%d %H-%M-%S");
-
-			return L"now";
-		}
-
 #endif
 
-		SimpleLog() {}
+		/// <summary>
+		/// Creates a SimpleLog with default values for directory, name, and retention
+		/// </summary>
+		SimpleLog()
+		{
 
-		// TODO: Implement ctors
+			// SGR TODO: Implement
 
-		virtual ~SimpleLog() {}
+		}
+
+		/// <summary>
+		/// Creates a SimpleLog instance.
+		/// </summary>
+		/// <param name="directory">The directory where log files are stored</param>
+		/// <param name="name">The name for log files of this process</param>
+		/// <param name="retention">The default log file retention count; must be 2 or larger</param>
+		SimpleLog(std::filesystem::path const& directory, std::filesystem::path const& name, int retention)
+		{
+
+			// SGR TODO: Implement
+
+		}
+
+		virtual ~SimpleLog()
+		{
+
+			// SGR TODO: Implement
+
+		}
 
 #if 1 /* REGION: implementation of ISampleLog */
 
@@ -277,7 +350,21 @@ namespace sgrottel
 	class EchoingSimpleLog : public SimpleLog
 	{
 	public:
+
+		/// <summary>
+		/// Creates a EchoingSimpleLog with default values for directory, name, and retention
+		/// </summary>
 		EchoingSimpleLog() : SimpleLog() {}
+
+		/// <summary>
+		/// Creates a EchoingSimpleLog instance.
+		/// </summary>
+		/// <param name="directory">The directory where log files are stored</param>
+		/// <param name="name">The name for log files of this process</param>
+		/// <param name="retention">The default log file retention count; must be 2 or larger</param>
+		template<typename DIRECTORYT, typename NAMET>
+		EchoingSimpleLog(DIRECTORYT const& directory, NAMET const& name, int retention) : SimpleLog(directory, name, retention) { }
+
 		virtual ~EchoingSimpleLog() = default;
 
 		/// <summary>
@@ -289,9 +376,10 @@ namespace sgrottel
 		/// If set less than zero, the message string is treated being zero terminated.</param>
 		virtual void Write(uint32_t flags, char const* message, int messageLength = -1) override
 		{
-
-			// SGR TODO: Implement
-
+			if (messageLength < 0)
+				printf("%s\n", message);
+			else
+				printf("%.*s\n", messageLength, message);
 			SimpleLog::Write(flags, message, messageLength);
 		}
 
@@ -304,9 +392,10 @@ namespace sgrottel
 		/// If set less than zero, the message string is treated being zero terminated.</param>
 		virtual void Write(uint32_t flags, wchar_t const* message, int messageLength = -1) override
 		{
-
-			// SGR TODO: Implement
-
+			if (messageLength < 0)
+				wprintf(L"%s\n", message);
+			else
+				wprintf(L"%.*s\n", messageLength, message);
 			SimpleLog::Write(flags, message, messageLength);
 		}
 
