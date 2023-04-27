@@ -45,6 +45,8 @@ internal class Program
 
 		SimpleLog.Write(log, "Formatting away: {0} {1} {2} {3} {4}", new object[]{ "The", "quick", "Fox", "doesn't", "care!"});
 
+		SimpleLog.Write(log, "Arg: {0}", (args.Length > 0) ? args[0] : "none");
+
 		log.Write("Done.");
 	}
 }

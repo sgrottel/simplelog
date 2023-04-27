@@ -20,31 +20,9 @@
 
 #include "Second.h"
 
-#include "SimpleLog/SimpleLog.hpp"
+#include <SimpleLog/SimpleLog.hpp>
 
-#include <iostream>
-#include <string>
-
-int wmain(int argc, wchar_t const* argv[])
+void PrintMessage(sgrottel::ISimpleLog& log, std::wstring const& msg)
 {
-	using sgrottel::SimpleLog;
-
-	sgrottel::EchoingSimpleLog log;
-
-	SimpleLog::Write(log, "Started %s", SimpleLog::TimeStampA().c_str());
-
-	SimpleLog::Write(log, L"Default Directory: %s", SimpleLog::GetDefaultDirectory().generic_wstring().c_str());
-	SimpleLog::Write(log, "Default Name: %s", SimpleLog::GetDefaultName().generic_string().c_str());
-	SimpleLog::Write(log, L"Default Retention: %s", SimpleLog::GetDefaultRetention());
-
-	PrintMessage(log, L"And now for something completely different:");
-	SimpleLog::Error(log, "An Error");
-	SimpleLog::Warning(log, L"A Warning");
-	SimpleLog::Write(log, std::string{"And a normal Message"});
-
-	SimpleLog::Write(&log, "Formatting away: %s %S %s %s %S", "The", L"quick", "Fox", "doesn't", L"care!");
-
-	SimpleLog::Write(log, L"Arg: %s", (argc > 1) ? argv[1] : L"none");
-
-	log.Write("Done.");
+	log.Write(0, msg.c_str());
 }

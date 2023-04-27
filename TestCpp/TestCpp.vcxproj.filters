@@ -18,10 +18,16 @@
     <ClCompile Include="TestCpp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Second.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\cpp\SimpleLog\SimpleLog.hpp">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Second.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

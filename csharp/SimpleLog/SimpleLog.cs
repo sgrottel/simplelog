@@ -167,7 +167,6 @@ namespace SGrottel
 					return parent;
 			}
 
-
 			parent = AppContext.BaseDirectory;
 			if (Directory.Exists(parent))
 			{

@@ -18,33 +18,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-#include "Second.h"
+#pragma once
 
-#include "SimpleLog/SimpleLog.hpp"
-
-#include <iostream>
 #include <string>
+#include <wchar.h>
 
-int wmain(int argc, wchar_t const* argv[])
+namespace sgrottel
 {
-	using sgrottel::SimpleLog;
-
-	sgrottel::EchoingSimpleLog log;
-
-	SimpleLog::Write(log, "Started %s", SimpleLog::TimeStampA().c_str());
-
-	SimpleLog::Write(log, L"Default Directory: %s", SimpleLog::GetDefaultDirectory().generic_wstring().c_str());
-	SimpleLog::Write(log, "Default Name: %s", SimpleLog::GetDefaultName().generic_string().c_str());
-	SimpleLog::Write(log, L"Default Retention: %s", SimpleLog::GetDefaultRetention());
-
-	PrintMessage(log, L"And now for something completely different:");
-	SimpleLog::Error(log, "An Error");
-	SimpleLog::Warning(log, L"A Warning");
-	SimpleLog::Write(log, std::string{"And a normal Message"});
-
-	SimpleLog::Write(&log, "Formatting away: %s %S %s %s %S", "The", L"quick", "Fox", "doesn't", L"care!");
-
-	SimpleLog::Write(log, L"Arg: %s", (argc > 1) ? argv[1] : L"none");
-
-	log.Write("Done.");
+	class ISimpleLog;
 }
+
+void PrintMessage(sgrottel::ISimpleLog& log, std::wstring const& msg);
