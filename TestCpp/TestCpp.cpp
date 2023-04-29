@@ -22,6 +22,10 @@
 
 #include "SimpleLog/SimpleLog.hpp"
 
+#define WIN32_LEAN_AND_MEAN
+#define VC_EXTRALEAN
+#include <Windows.h>
+
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -29,6 +33,8 @@
 int wmain(int argc, wchar_t const* argv[])
 {
 	using sgrottel::SimpleLog;
+
+	bool waitForSemaphore = (argc > 2 && wcscmp(argv[2], L"-wait") == 0);
 
 	wchar_t filenameBuf[MAX_PATH + 1];
 	DWORD filenameLen = GetModuleFileNameW(nullptr, filenameBuf, MAX_PATH);
@@ -54,6 +60,28 @@ int wmain(int argc, wchar_t const* argv[])
 	SimpleLog::Write(log, "Default Name: %s", SimpleLog::GetDefaultName().generic_string().c_str());
 	SimpleLog::Write(log, L"Default Retention: %d", SimpleLog::GetDefaultRetention());
 
+	if (waitForSemaphore)
+	{
+		HANDLE hSemaphore = CreateSemaphoreW(nullptr, 0, 1, L"SGROTTEL_SIMPLELOG_TEST_WAIT");
+		if (hSemaphore != nullptr)
+		{
+			std::cout << "Waiting...";
+			DWORD waited = WaitForSingleObject(hSemaphore, 1000 * 60 * 10); // 10min
+			CloseHandle(hSemaphore);
+			if (waited != WAIT_OBJECT_0)
+			{
+				std::cout << std::endl;
+				std::cerr << "FAILED TO WAIT: " << waited << std::endl;
+				SimpleLog::Error(log, "FAILED TO WAIT: %d", static_cast<int>(waited));
+				return 1;
+			}
+			else
+			{
+				std::cout << "ok" << std::endl;
+			}
+		}
+	}
+
 	PrintMessage(log, L"And now for something completely different:");
 	SimpleLog::Error(log, "An Error");
 	SimpleLog::Warning(log, L"A Warning");
@@ -64,4 +92,6 @@ int wmain(int argc, wchar_t const* argv[])
 	SimpleLog::Write(log, L"Arg: %s", (argc > 1) ? argv[1] : L"none");
 
 	log.Write("Done.XYZ", 5);
+
+	return 0;
 }

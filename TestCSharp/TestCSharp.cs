@@ -20,11 +20,14 @@
 
 using SGrottel;
 using System.Reflection;
+using System.Reflection.Metadata;
 
 internal class TestCSharp
 {
-	private static void Main(string[] args)
+	private static int Main(string[] args)
 	{
+		bool waitForSemaphore = (args.Length > 1 && args[1] == "-wait");
+
 		var asm = Assembly.GetExecutingAssembly();
 
 		string logDir = Path.Combine(Path.GetDirectoryName(asm.Location) ?? ".", "log");
@@ -37,6 +40,26 @@ internal class TestCSharp
 		SimpleLog.Write(log, "Default Name: {0}", SimpleLog.GetDefaultName());
 		SimpleLog.Write(log, "Default Retention: {0}", SimpleLog.GetDefaultRetention());
 
+		if (waitForSemaphore)
+		{
+			using (Semaphore semaphore = new Semaphore(0, 1, "SGROTTEL_SIMPLELOG_TEST_WAIT"))
+			{
+				Console.Write("Waiting...");
+				bool sig = semaphore.WaitOne(TimeSpan.FromMinutes(10));
+				if (!sig)
+				{
+					Console.WriteLine();
+					Console.Error.WriteLine("FAILED TO WAIT: timeout");
+					SimpleLog.Error(log, "FAILED TO WAIT: timeout");
+					return 1;
+				}
+				else
+				{
+					Console.WriteLine("ok");
+				}
+			}
+		}
+
 		log.Write("And now for something completely different:");
 		SimpleLog.Error(log, "An Error");
 		SimpleLog.Warning(log, "A Warning");
@@ -47,5 +70,7 @@ internal class TestCSharp
 		SimpleLog.Write(log, "Arg: {0}", (args.Length > 0) ? args[0] : "none");
 
 		log.Write("Done.");
+
+		return 0;
 	}
 }
