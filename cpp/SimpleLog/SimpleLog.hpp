@@ -28,6 +28,8 @@
 #include <cstdlib>
 #include <ctime>
 #include <mutex>
+#include <fstream>
+#include <clocale>
 
 #if !(defined(_WINDOWS_) || defined(_INC_WINDOWS))
 #define WIN32_LEAN_AND_MEAN
@@ -134,6 +136,8 @@ namespace sgrottel
 			localtime_s(&now, &t);
 			return formatString(L"%d-%.2d-%.2d %.2d:%.2d:%.2dZ", now.tm_year + 1900, now.tm_mon + 1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
 		}
+
+		std::wofstream m_file;
 
 	protected:
 
@@ -270,12 +274,7 @@ namespace sgrottel
 		/// <summary>
 		/// Creates a SimpleLog with default values for directory, name, and retention
 		/// </summary>
-		SimpleLog()
-		{
-
-			// SGR TODO: Implement
-
-		}
+		SimpleLog() : SimpleLog(GetDefaultDirectory(), GetDefaultName(), GetDefaultRetention()) { }
 
 		/// <summary>
 		/// Creates a SimpleLog instance.
@@ -286,16 +285,32 @@ namespace sgrottel
 		SimpleLog(std::filesystem::path const& directory, std::filesystem::path const& name, int retention)
 		{
 
+			m_file.open("c:\\temp\\dummy.txt", std::ios::binary);
 			// SGR TODO: Implement
 
+
+
+			if (m_file.is_open())
+			{
+				try
+				{
+					m_file.imbue(std::locale(".utf8"));
+				}
+				catch (...) {}
+			}
 		}
 
 		virtual ~SimpleLog()
 		{
 			std::lock_guard<std::mutex> lock{m_threadLock};
-
-			// SGR TODO: Implement
-
+			try
+			{
+				if (m_file.is_open())
+				{
+					m_file.close();
+				}
+			}
+			catch (...) {}
 		}
 
 #if 1 /* REGION: implementation of ISampleLog */
@@ -332,9 +347,24 @@ namespace sgrottel
 		virtual void Write(uint32_t flags, char const* message, int messageLength = -1) override
 		{
 			std::lock_guard<std::mutex> lock{m_threadLock};
+			if (!m_file.is_open()) return;
 
-			// SGR TODO: Implement
+			const char* typeStr = "";
+			if (flags & FlagError) typeStr = "ERROR ";
+			else if (flags & FlagWarning) typeStr = "WARNING ";
 
+			m_file << timeStampA().c_str() << "|" << typeStr << " ";
+			if (messageLength < 0)
+			{
+				m_file << message;
+			}
+			else
+			{
+				// this path is likely the exception, so it's ok that this copy will take a little longer
+				m_file << std::string{ message, message + messageLength }.c_str();
+			}
+			m_file << std::endl;
+			m_file.flush();
 		}
 
 		/// <summary>
@@ -347,9 +377,24 @@ namespace sgrottel
 		virtual void Write(uint32_t flags, wchar_t const* message, int messageLength = -1) override
 		{
 			std::lock_guard<std::mutex> lock{m_threadLock};
+			if (!m_file.is_open()) return;
 
-			// SGR TODO: Implement
+			const wchar_t* typeStr = L"";
+			if (flags & FlagError) typeStr = L"ERROR ";
+			else if (flags & FlagWarning) typeStr = L"WARNING ";
 
+			m_file << timeStampW().c_str() << L"|" << typeStr << L" ";
+			if (messageLength < 0)
+			{
+				m_file << message;
+			}
+			else
+			{
+				// this path is likely the exception, so it's ok that this copy will take a little longer
+				m_file << std::wstring{ message, message + messageLength };
+			}
+			m_file << std::endl;
+			m_file.flush();
 		}
 
 #endif
