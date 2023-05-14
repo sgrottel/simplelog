@@ -1,7 +1,9 @@
-# SimpleLog
+# SGrottel SimpleLog™  <img src="images/SimpleLog_x64.png" alt="SimpleLog Icon" align="left" style="height:1.25em;margin-right:0.25em">
 A very simple log implementation.
 Nothing fancy, only log strings to log files and log file retention.
 Usable as source component, not a lib.
+
+![GitHub](https://img.shields.io/github/license/sgrottel/simplelog)
 
 TODO
 
