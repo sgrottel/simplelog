@@ -42,20 +42,25 @@ internal class TestCSharp
 
 		if (waitForSemaphore)
 		{
-			using (Semaphore semaphore = new Semaphore(0, 1, "SGROTTEL_SIMPLELOG_TEST_WAIT"))
+			using (Semaphore readySemaphore = new Semaphore(0, 1, "SGROTTEL_SIMPLELOG_TEST_READY"))
 			{
-				Console.Write("Waiting...");
-				bool sig = semaphore.WaitOne(TimeSpan.FromMinutes(10));
-				if (!sig)
+				readySemaphore.Release(1);
+				Console.Write("Signaling being ready");
+				using (Semaphore waitSemaphore = new Semaphore(0, 1, "SGROTTEL_SIMPLELOG_TEST_WAIT"))
 				{
-					Console.WriteLine();
-					Console.Error.WriteLine("FAILED TO WAIT: timeout");
-					SimpleLog.Error(log, "FAILED TO WAIT: timeout");
-					return 1;
-				}
-				else
-				{
-					Console.WriteLine("ok");
+					Console.Write("Waiting...");
+					bool sig = waitSemaphore.WaitOne(TimeSpan.FromMinutes(10));
+					if (!sig)
+					{
+						Console.WriteLine();
+						Console.Error.WriteLine("FAILED TO WAIT: timeout");
+						SimpleLog.Error(log, "FAILED TO WAIT: timeout");
+						return 1;
+					}
+					else
+					{
+						Console.WriteLine("ok");
+					}
 				}
 			}
 		}

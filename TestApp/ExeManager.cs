@@ -17,7 +17,6 @@ namespace SimpleLogTest
 	{
 		private static string? testCSharp = null;
 		private static string? testCpp = null;
-		private static string? continueTest = null;
 
 		internal static string TestCSharp
 		{
@@ -51,22 +50,6 @@ namespace SimpleLogTest
 			}
 		}
 
-		internal static string ContinueTest
-		{
-			get
-			{
-				if (continueTest == null)
-				{
-					assertExes();
-					if (continueTest == null || System.IO.File.Exists(continueTest) == false)
-					{
-						throw new Exception("Failed to find ContinueTest");
-					}
-				}
-				return continueTest;
-			}
-		}
-
 		internal enum ImageType
 		{
 			x86,
@@ -79,7 +62,6 @@ namespace SimpleLogTest
 			if (ExeManager.imageType != imageType)
 			{
 				testCpp = null;
-				continueTest = null;
 			}
 			ExeManager.imageType = imageType;
 		}
@@ -123,28 +105,6 @@ namespace SimpleLogTest
 					throw new FileNotFoundException();
 				}
 				testCpp = p;
-			}
-
-			if (continueTest == null)
-			{
-				string p = Path.Combine(dir, "UtilContinueTest" + imageType.ToString() + ".exe");
-				if (!File.Exists(p))
-				{
-					string sp = FindSourceFile(Path.Combine(dir, @"..\..\..\..\UtilContinueTest\bin"), imageType.ToString(), "UtilContinueTest.exe");
-					CopyAllFiles(Path.GetDirectoryName(sp), dir);
-					foreach (string file in Directory.GetFiles(dir))
-					{
-						if (Path.GetFileNameWithoutExtension(file) == "UtilContinueTest")
-						{
-							File.Move(file, Path.Combine(dir, "UtilContinueTest" + imageType.ToString() + Path.GetExtension(file)));
-						}
-					}
-				}
-				if (!File.Exists(p))
-				{
-					throw new FileNotFoundException();
-				}
-				continueTest = p;
 			}
 
 		}

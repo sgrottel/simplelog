@@ -20,7 +20,6 @@
   <ItemGroup>
     <ProjectReference Include="..\TestCpp\TestCpp.vcxproj" />
     <ProjectReference Include="..\TestCSharp\TestCSharp.csproj" />
-    <ProjectReference Include="..\UtilContinueTest\UtilContinueTest.vcxproj" />
   </ItemGroup>
 
 </Project>

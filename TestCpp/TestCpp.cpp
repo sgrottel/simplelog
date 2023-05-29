@@ -62,23 +62,32 @@ int wmain(int argc, wchar_t const* argv[])
 
 	if (waitForSemaphore)
 	{
-		HANDLE hSemaphore = CreateSemaphoreW(nullptr, 0, 1, L"SGROTTEL_SIMPLELOG_TEST_WAIT");
-		if (hSemaphore != nullptr)
+		HANDLE hReadySemaphore = CreateSemaphoreW(nullptr, 0, 1, L"SGROTTEL_SIMPLELOG_TEST_READY");
+		if (hReadySemaphore != nullptr)
 		{
-			std::cout << "Waiting...";
-			DWORD waited = WaitForSingleObject(hSemaphore, 1000 * 60 * 10); // 10min
-			CloseHandle(hSemaphore);
-			if (waited != WAIT_OBJECT_0)
+			HANDLE hWaitSemaphore = CreateSemaphoreW(nullptr, 0, 1, L"SGROTTEL_SIMPLELOG_TEST_WAIT");
+			if (hWaitSemaphore != nullptr)
 			{
-				std::cout << std::endl;
-				std::cerr << "FAILED TO WAIT: " << waited << std::endl;
-				SimpleLog::Error(log, "FAILED TO WAIT: %d", static_cast<int>(waited));
-				return 1;
+				std::cout << "Signaling being ready" << std::endl;
+				LONG pc = -1;
+				BOOL b = ReleaseSemaphore(hReadySemaphore, 1, &pc);
+
+				std::cout << "Waiting...";
+				DWORD waited = WaitForSingleObject(hWaitSemaphore, 1000 * 60 * 10); // 10min
+				CloseHandle(hWaitSemaphore);
+				if (waited != WAIT_OBJECT_0)
+				{
+					std::cout << std::endl;
+					std::cerr << "FAILED TO WAIT: " << waited << std::endl;
+					SimpleLog::Error(log, "FAILED TO WAIT: %d", static_cast<int>(waited));
+					return 1;
+				}
+				else
+				{
+					std::cout << "ok" << std::endl;
+				}
 			}
-			else
-			{
-				std::cout << "ok" << std::endl;
-			}
+			CloseHandle(hReadySemaphore);
 		}
 	}
 

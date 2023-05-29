@@ -20,5 +20,11 @@ namespace SimpleLogTest
 		{
 			TestImpl.ManyLogFiles(ExeManager.TestCSharp);
 		}
+
+		[TestMethod]
+		public void MultiProcessLogFiles()
+		{
+			TestImpl.MultiProcessLogFiles(ExeManager.TestCSharp, ExeManager.TestCSharp);
+		}
 	}
 }

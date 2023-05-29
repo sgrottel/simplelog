@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SGrottel;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,8 +26,8 @@ namespace SimpleLogTest
 				System.Diagnostics.Process p1 = ExeManager.Start(exe, arg, true);
 				while (!p1.HasExited)
 				{
-					Thread.Sleep(25);
-					ExeManager.StartAndWait(ExeManager.ContinueTest, null, false);
+					WaitForTestWaiting();
+					SignalTestToContinue();
 				}
 				p1.WaitForExit();
 			}
@@ -125,6 +126,73 @@ namespace SimpleLogTest
 			Assert.AreEqual(" Arg: " + arg, lines[9]);
 			Assert.AreEqual(" Done.", lines[10]);
 
+		}
+
+		internal static void MultiProcessLogFiles(string exe, string exe2)
+		{
+			Assert.IsFalse(string.IsNullOrEmpty(exe));
+			Assert.IsTrue(File.Exists(exe));
+			Assert.IsFalse(string.IsNullOrEmpty(exe2));
+			Assert.IsTrue(File.Exists(exe2));
+
+			LogDirManager.Delete();
+			Assert.IsFalse(Directory.Exists(LogDirManager.Dir));
+
+			Assert.IsTrue(ExeManager.StartAndWait(exe, "Run 0 Prep", false));
+			Assert.IsTrue(Directory.Exists(LogDirManager.Dir));
+
+			string[] files = Directory.GetFiles(LogDirManager.Dir);
+			Assert.AreEqual(1, files.Length);
+			Assert.IsTrue(File.Exists(Path.Combine(LogDirManager.Dir, "TestSimpleLog.log")));
+
+			var first = ExeManager.Start(exe, "First", true);
+
+			WaitForTestWaiting();
+
+			files = Directory.GetFiles(LogDirManager.Dir);
+			Assert.AreEqual(2, files.Length);
+			Assert.IsTrue(File.Exists(Path.Combine(LogDirManager.Dir, "TestSimpleLog.log")));
+			Assert.IsTrue(File.Exists(Path.Combine(LogDirManager.Dir, "TestSimpleLog.1.log")));
+			AssertLogFileContent(Path.Combine(LogDirManager.Dir, "TestSimpleLog.1.log"), null, "Run 0 Prep");
+
+			Assert.IsTrue(ExeManager.StartAndWait(exe2, "Second", false));
+
+			files = Directory.GetFiles(LogDirManager.Dir);
+			Assert.AreEqual(3, files.Length);
+			Assert.IsTrue(File.Exists(Path.Combine(LogDirManager.Dir, "TestSimpleLog.log")));
+			Assert.IsTrue(File.Exists(Path.Combine(LogDirManager.Dir, "TestSimpleLog.1.log")));
+			Assert.IsTrue(File.Exists(Path.Combine(LogDirManager.Dir, "TestSimpleLog.2.log")));
+			AssertLogFileContent(Path.Combine(LogDirManager.Dir, "TestSimpleLog.log"), null, "Second");
+			AssertLogFileContent(Path.Combine(LogDirManager.Dir, "TestSimpleLog.2.log"), null, "Run 0 Prep");
+
+			SignalTestToContinue();
+
+			files = Directory.GetFiles(LogDirManager.Dir);
+			Assert.AreEqual(3, files.Length);
+			Assert.IsTrue(File.Exists(Path.Combine(LogDirManager.Dir, "TestSimpleLog.log")));
+			Assert.IsTrue(File.Exists(Path.Combine(LogDirManager.Dir, "TestSimpleLog.1.log")));
+			Assert.IsTrue(File.Exists(Path.Combine(LogDirManager.Dir, "TestSimpleLog.2.log")));
+			AssertLogFileContent(Path.Combine(LogDirManager.Dir, "TestSimpleLog.log"), null, "Second");
+			AssertLogFileContent(Path.Combine(LogDirManager.Dir, "TestSimpleLog.1.log"), null, "First");
+			AssertLogFileContent(Path.Combine(LogDirManager.Dir, "TestSimpleLog.2.log"), null, "Run 0 Prep");
+		}
+
+		private static void WaitForTestWaiting()
+		{
+			using (Semaphore waitSemaphore = new Semaphore(0, 1, "SGROTTEL_SIMPLELOG_TEST_READY"))
+			{
+				bool sig = waitSemaphore.WaitOne(TimeSpan.FromMinutes(10));
+				Assert.IsTrue(sig);
+			}
+		}
+
+		private static void SignalTestToContinue()
+		{
+			using (Semaphore readySemaphore = new Semaphore(0, 1, "SGROTTEL_SIMPLELOG_TEST_WAIT"))
+			{
+				int oc = readySemaphore.Release(1);
+				Assert.AreEqual(0, oc);
+			}
 		}
 	}
 }
