@@ -67,21 +67,21 @@ namespace SGrottel
 	{
 
 		#region Static Write Convenience Functions
-		static public void Write(ISimpleLog log, string message) { log.Write(message); }
-		static public void Write(ISimpleLog log, string format, object? arg0) { log.Write(string.Format(format, arg0)); }
-		static public void Write(ISimpleLog log, string format, object? arg0, object? arg1) { log.Write(string.Format(format, arg0, arg1)); }
-		static public void Write(ISimpleLog log, string format, object? arg0, object? arg1, object? arg2) { log.Write(string.Format(format, arg0, arg1, arg2)); }
-		static public void Write(ISimpleLog log, string format, object?[] args) { log.Write(string.Format(format, args)); }
-		static public void Warning(ISimpleLog log, string message) { log.Write(ISimpleLog.FlagWarning, message); }
-		static public void Warning(ISimpleLog log, string format, object? arg0) { log.Write(ISimpleLog.FlagWarning, string.Format(format, arg0)); }
-		static public void Warning(ISimpleLog log, string format, object? arg0, object? arg1) { log.Write(ISimpleLog.FlagWarning, string.Format(format, arg0, arg1)); }
-		static public void Warning(ISimpleLog log, string format, object? arg0, object? arg1, object? arg2) { log.Write(ISimpleLog.FlagWarning, string.Format(format, arg0, arg1, arg2)); }
-		static public void Warning(ISimpleLog log, string format, object?[] args) { log.Write(ISimpleLog.FlagWarning, string.Format(format, args)); }
-		static public void Error(ISimpleLog log, string message) { log.Write(ISimpleLog.FlagError, message); }
-		static public void Error(ISimpleLog log, string format, object? arg0) { log.Write(ISimpleLog.FlagError, string.Format(format, arg0)); }
-		static public void Error(ISimpleLog log, string format, object? arg0, object? arg1) { log.Write(ISimpleLog.FlagError, string.Format(format, arg0, arg1)); }
-		static public void Error(ISimpleLog log, string format, object? arg0, object? arg1, object? arg2) { log.Write(ISimpleLog.FlagError, string.Format(format, arg0, arg1, arg2)); }
-		static public void Error(ISimpleLog log, string format, object?[] args) { log.Write(ISimpleLog.FlagError, string.Format(format, args)); }
+		static public void Write(ISimpleLog? log, string message) { log?.Write(message); }
+		static public void Write(ISimpleLog? log, string format, object? arg0) { log?.Write(string.Format(format, arg0)); }
+		static public void Write(ISimpleLog? log, string format, object? arg0, object? arg1) { log?.Write(string.Format(format, arg0, arg1)); }
+		static public void Write(ISimpleLog? log, string format, object? arg0, object? arg1, object? arg2) { log?.Write(string.Format(format, arg0, arg1, arg2)); }
+		static public void Write(ISimpleLog? log, string format, object?[] args) { log?.Write(string.Format(format, args)); }
+		static public void Warning(ISimpleLog? log, string message) { log?.Write(ISimpleLog.FlagWarning, message); }
+		static public void Warning(ISimpleLog? log, string format, object? arg0) { log?.Write(ISimpleLog.FlagWarning, string.Format(format, arg0)); }
+		static public void Warning(ISimpleLog? log, string format, object? arg0, object? arg1) { log?.Write(ISimpleLog.FlagWarning, string.Format(format, arg0, arg1)); }
+		static public void Warning(ISimpleLog? log, string format, object? arg0, object? arg1, object? arg2) { log?.Write(ISimpleLog.FlagWarning, string.Format(format, arg0, arg1, arg2)); }
+		static public void Warning(ISimpleLog? log, string format, object?[] args) { log?.Write(ISimpleLog.FlagWarning, string.Format(format, args)); }
+		static public void Error(ISimpleLog? log, string message) { log?.Write(ISimpleLog.FlagError, message); }
+		static public void Error(ISimpleLog? log, string format, object? arg0) { log?.Write(ISimpleLog.FlagError, string.Format(format, arg0)); }
+		static public void Error(ISimpleLog? log, string format, object? arg0, object? arg1) { log?.Write(ISimpleLog.FlagError, string.Format(format, arg0, arg1)); }
+		static public void Error(ISimpleLog? log, string format, object? arg0, object? arg1, object? arg2) { log?.Write(ISimpleLog.FlagError, string.Format(format, arg0, arg1, arg2)); }
+		static public void Error(ISimpleLog? log, string format, object?[] args) { log?.Write(ISimpleLog.FlagError, string.Format(format, args)); }
 		#endregion
 
 		#region Ctor
@@ -94,7 +94,7 @@ namespace SGrottel
 		///
 		/// These locations are tested in this priority order:
 		/// 1) "%appdata%\LocalLow\sgrottel_simplelog"
-		/// 2) "logs" subfolder of the localion of the process' executing assembly
+		/// 2) "logs" subfolder of the location of the process' executing assembly
 		/// 3) the localion of the process' executing assembly
 		/// 4) "logs" subfolder of the current working directory
 		/// 5) the current working directory

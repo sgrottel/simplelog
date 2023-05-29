@@ -213,7 +213,7 @@ namespace sgrottel
 		///
 		/// These locations are tested in this priority order:
 		/// 1) "%appdata%\LocalLow\sgrottel_simplelog"
-		/// 2) "logs" subfolder of the localion of the process' executing assembly
+		/// 2) "logs" subfolder of the location of the process' executing assembly
 		/// 3) the localion of the process' executing assembly
 		/// 4) "logs" subfolder of the current working directory
 		/// 5) the current working directory
