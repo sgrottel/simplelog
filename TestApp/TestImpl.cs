@@ -24,11 +24,8 @@ namespace SimpleLogTest
 			if (wait)
 			{
 				System.Diagnostics.Process p1 = ExeManager.Start(exe, arg, true);
-				while (!p1.HasExited)
-				{
-					WaitForTestWaiting();
-					SignalTestToContinue();
-				}
+				WaitForTestWaiting();
+				SignalTestToContinue();
 				p1.WaitForExit();
 			}
 			else
@@ -166,6 +163,7 @@ namespace SimpleLogTest
 			AssertLogFileContent(Path.Combine(LogDirManager.Dir, "TestSimpleLog.2.log"), null, "Run 0 Prep");
 
 			SignalTestToContinue();
+			Assert.IsTrue(first.WaitForExit((int)TimeSpan.FromMinutes(5).TotalMilliseconds));
 
 			files = Directory.GetFiles(LogDirManager.Dir);
 			Assert.AreEqual(3, files.Length);
@@ -193,6 +191,65 @@ namespace SimpleLogTest
 				int oc = readySemaphore.Release(1);
 				Assert.AreEqual(0, oc);
 			}
+		}
+
+		internal static void MultiProcessLogFilesToDelete(string exe)
+		{
+			Assert.IsFalse(string.IsNullOrEmpty(exe));
+			Assert.IsTrue(File.Exists(exe));
+			LogDirManager.Delete();
+			Assert.IsFalse(Directory.Exists(LogDirManager.Dir));
+
+			Assert.IsTrue(ExeManager.StartAndWait(exe, "Run 0 Prep", false));
+			Assert.IsTrue(Directory.Exists(LogDirManager.Dir));
+
+			string[] files = Directory.GetFiles(LogDirManager.Dir);
+			Assert.AreEqual(1, files.Length);
+			Assert.IsTrue(File.Exists(Path.Combine(LogDirManager.Dir, "TestSimpleLog.log")));
+
+			var first = ExeManager.Start(exe, "First", true);
+
+			WaitForTestWaiting();
+
+			for (int i = 0; i < 10; ++i)
+			{
+				Assert.IsTrue(ExeManager.StartAndWait(exe, "Iteration " + i.ToString(), false));
+				Assert.IsTrue(Directory.Exists(LogDirManager.Dir));
+			}
+
+			files = Directory.GetFiles(LogDirManager.Dir);
+			Assert.AreEqual(4, files.Length);
+
+			string p0 = Path.Combine(LogDirManager.Dir, "TestSimpleLog.log");
+			Assert.IsTrue(File.Exists(p0));
+			string p1 = Path.Combine(LogDirManager.Dir, "TestSimpleLog.1.log");
+			Assert.IsTrue(File.Exists(p1));
+			string p2 = Path.Combine(LogDirManager.Dir, "TestSimpleLog.2.log");
+			Assert.IsTrue(File.Exists(p2));
+			string p3 = Path.Combine(LogDirManager.Dir, "TestSimpleLog.3.log");
+			Assert.IsTrue(File.Exists(p3));
+
+			AssertLogFileContent(p0, null, "Iteration 9");
+			AssertLogFileContent(p1, null, "Iteration 8");
+			AssertLogFileContent(p2, null, "Iteration 7");
+			AssertLogFileContent(p3, null, "Iteration 6");
+
+			SignalTestToContinue();
+			Assert.IsTrue(first.WaitForExit((int)TimeSpan.FromMinutes(5).TotalMilliseconds));
+
+			files = Directory.GetFiles(LogDirManager.Dir);
+			Assert.AreEqual(4, files.Length);
+
+			Assert.IsTrue(File.Exists(p0));
+			Assert.IsTrue(File.Exists(p1));
+			Assert.IsTrue(File.Exists(p2));
+			Assert.IsTrue(File.Exists(p3));
+
+			AssertLogFileContent(p0, null, "Iteration 9");
+			AssertLogFileContent(p1, null, "Iteration 8");
+			AssertLogFileContent(p2, null, "Iteration 7");
+			AssertLogFileContent(p3, null, "Iteration 6");
+
 		}
 	}
 }

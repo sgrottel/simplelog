@@ -262,39 +262,48 @@ namespace SGrottel
 			if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("name");
 			if (retention < 2) throw new ArgumentException("retention");
 
-			// TODO: Cross-Process Mutex Lock
-			//   Can we already move log files which are still in use by another process?
-			//   Can we get how many handles are open on a file?
-
-			if (!Directory.Exists(directory))
+			using (Mutex logSetupMutex = new Mutex(false, "SGROTTEL_SIMPLELOG_CREATION"))
 			{
-				string? pp = Path.GetDirectoryName(directory);
-				if (!Directory.Exists(pp)) throw new Exception("Log directory does not exist");
-				Directory.CreateDirectory(directory);
-				if (!Directory.Exists(directory)) throw new Exception("Failed to create log directory");
-			}
+				logSetupMutex.WaitOne();
+				try
+				{
+					if (!Directory.Exists(directory))
+					{
+						string? pp = Path.GetDirectoryName(directory);
+						if (!Directory.Exists(pp)) throw new Exception("Log directory does not exist");
+						Directory.CreateDirectory(directory);
+						if (!Directory.Exists(directory)) throw new Exception("Failed to create log directory");
+					}
 
-			string fn = Path.Combine(directory, string.Format("{0}.{1}.log", name, retention - 1));
-			if (File.Exists(fn))
-			{
-				File.Delete(fn);
-				if (File.Exists(fn)) throw new Exception(string.Format("Failed to delete old log file '{0}'", fn));
-			}
+					string fn = Path.Combine(directory, string.Format("{0}.{1}.log", name, retention - 1));
+					if (File.Exists(fn))
+					{
+						File.Delete(fn);
+						if (File.Exists(fn)) throw new Exception(string.Format("Failed to delete old log file '{0}'", fn));
+					}
 
-			for (int i = retention - 1; i > 0; --i)
-			{
-				string tfn = Path.Combine(directory, string.Format("{0}.{1}.log", name, i));
-				string sfn = Path.Combine(directory, string.Format("{0}.{1}.log", name, i - 1));
-				if (i == 1) sfn = Path.Combine(directory, string.Format("{0}.log", name));
-				if (!File.Exists(sfn)) continue;
-				if (File.Exists(tfn)) throw new Exception(string.Format("Log file retention error. Unexpected log file: '{0}'", tfn));
-				File.Move(sfn, tfn);
-				if (File.Exists(sfn)) throw new Exception(string.Format("Log file retention error. Unable to move log file: '{0}'", sfn));
-			}
+					for (int i = retention - 1; i > 0; --i)
+					{
+						string tfn = Path.Combine(directory, string.Format("{0}.{1}.log", name, i));
+						string sfn = Path.Combine(directory, string.Format("{0}.{1}.log", name, i - 1));
+						if (i == 1) sfn = Path.Combine(directory, string.Format("{0}.log", name));
+						if (!File.Exists(sfn)) continue;
+						if (File.Exists(tfn)) throw new Exception(string.Format("Log file retention error. Unexpected log file: '{0}'", tfn));
+						File.Move(sfn, tfn);
+						if (File.Exists(sfn)) throw new Exception(string.Format("Log file retention error. Unable to move log file: '{0}'", sfn));
+					}
 
-			var file = File.Open(Path.Combine(directory, string.Format("{0}.log", name)), FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
-			file.Seek(0, SeekOrigin.End); // append
-			writer = new StreamWriter(file, new UTF8Encoding(false));
+					// Share mode `Delete` allows other processes to rename the file while it is being written.
+					// This works because this process keeps an open file handle to write messages, and never reopens based on a file name.
+					var file = File.Open(Path.Combine(directory, string.Format("{0}.log", name)), FileMode.OpenOrCreate, FileAccess.Write, FileShare.Delete);
+					file.Seek(0, SeekOrigin.End); // append
+					writer = new StreamWriter(file, new UTF8Encoding(false));
+				}
+				finally
+				{
+					logSetupMutex.ReleaseMutex();
+				}
+			}
 		}
 		#endregion
 
@@ -390,7 +399,7 @@ namespace SGrottel
 					Console.ForegroundColor = ConsoleColor.Yellow;
 				}
 
-			((UseErrorOut && (isError || isWarning)) ? Console.Error : Console.Out).WriteLine(message);
+				((UseErrorOut && (isError || isWarning)) ? Console.Error : Console.Out).WriteLine(message);
 
 				if (UseColor && (isError || isWarning))
 				{

@@ -26,5 +26,11 @@ namespace SimpleLogTest
 		{
 			TestImpl.MultiProcessLogFiles(ExeManager.TestCSharp, ExeManager.TestCSharp);
 		}
+
+		[TestMethod]
+		public void MultiProcessLogFilesToDelete()
+		{
+			TestImpl.MultiProcessLogFilesToDelete(ExeManager.TestCSharp);
+		}
 	}
 }
