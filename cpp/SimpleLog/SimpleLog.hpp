@@ -42,6 +42,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
 #include <Windows.h>
+#include <shlobj_core.h>
 #endif
 #include <psapi.h>
 
@@ -112,7 +113,7 @@ namespace sgrottel
 		template<typename ...PARAMS>
 		static std::string formatString(char const* format, PARAMS&&... params)
 		{
-			// Visual studio specific
+			// Visual Cpp specific
 			size_t bufSize = _scprintf(format, params...) + 1;
 			std::shared_ptr<char> buf{ new char[bufSize], [](char* p) { delete[] p; }};
 			size_t end = sprintf_s(buf.get(), bufSize, format, params...);
@@ -122,7 +123,7 @@ namespace sgrottel
 		template<typename ...PARAMS>
 		static std::wstring formatString(wchar_t const* format, PARAMS&&... params)
 		{
-			// Visual studio specific
+			// Visual Cpp specific
 			size_t bufSize = _scwprintf(format, params...) + 1;
 			std::shared_ptr<wchar_t> buf{ new wchar_t[bufSize], [](wchar_t* p) { delete[] p; }};
 			size_t end = swprintf_s(buf.get(), bufSize, format, params...);
@@ -142,6 +143,30 @@ namespace sgrottel
 			struct tm now;
 			localtime_s(&now, &t);
 			return formatString(L"%d-%.2d-%.2d %.2d:%.2d:%.2dZ", now.tm_year + 1900, now.tm_mon + 1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
+		}
+		static std::filesystem::path getProcessPath()
+		{
+			// Visual Cpp specific
+			wchar_t filename[MAX_PATH + 1];
+			DWORD filenameLen = GetModuleFileNameW(nullptr, filename, MAX_PATH);
+			if (filenameLen > 0)
+			{
+				return std::filesystem::path{ filename, filename + filenameLen };
+			}
+			filenameLen = GetProcessImageFileNameW(GetCurrentProcess(), filename, MAX_PATH);
+			if (filenameLen > 0)
+			{
+				return std::filesystem::path{ filename, filename + filenameLen };
+			}
+			if (__argv != nullptr && __argv[0] != nullptr && __argv[0][0] != 0)
+			{
+				return std::filesystem::path{ __argv[0] };
+			}
+			if (__wargv != nullptr && __wargv[0] != nullptr && __wargv[0][0] != 0)
+			{
+				return std::filesystem::path{ __wargv[0] };
+			}
+			return {};
 		}
 
 		std::wofstream m_file;
@@ -231,9 +256,133 @@ namespace sgrottel
 		/// </remarks>
 		static std::filesystem::path GetDefaultDirectory()
 		{
-			// SGR TODO: Implement
+			auto testCreateFile = [](std::filesystem::path const& path)
+				{
+					try
+					{
+						std::filesystem::path file;
+						int i = 0;
+						do
+						{
+							i++;
+							file = path / ("temp_" + std::to_string(i) + ".tmp");
+						}
+						while (std::filesystem::exists(file));
 
-			return "";
+						FILE* f = nullptr;
+						// Visual Cpp specific
+						if (fopen_s(&f, file.generic_string().c_str(), "wb") != 0)
+						{
+							f = nullptr;
+						}
+						if (f == nullptr) throw std::runtime_error("failed to open");
+						size_t r = fwrite("Hello World", 11, 1, f);
+						fclose(f);
+
+						uintmax_t s = std::filesystem::file_size(file);
+
+						std::filesystem::remove(file);
+
+						return s > 0 && r > 0;
+					}
+					catch (...) {}
+					return false;
+				};
+			std::filesystem::path createdDir;
+			auto cleanDirGuard = [&](std::filesystem::path const& otherPath)
+				{
+					if (!createdDir.empty())
+					{
+						if (std::filesystem::is_directory(createdDir))
+						{
+							std::filesystem::remove_all(createdDir);
+						}
+						createdDir.clear();
+					}
+					return otherPath;
+				};
+			std::filesystem::path parent, path;
+
+			PWSTR wPath;
+			if (SHGetKnownFolderPath(FOLDERID_LocalAppDataLow, 0, NULL, &wPath) == S_OK)
+			{
+				parent = wPath;
+				CoTaskMemFree(wPath);
+				if (std::filesystem::is_directory(parent))
+				{
+					path = parent / "sgrottel_simplelog";
+					if (!std::filesystem::is_directory(path))
+					{
+						try
+						{
+							std::filesystem::create_directory(path);
+							createdDir = path;
+						}
+						catch (...) {}
+					}
+					if (std::filesystem::is_directory(path))
+					{
+						if (testCreateFile(path))
+						{
+							return cleanDirGuard(path);
+						}
+					}
+					cleanDirGuard("");
+				}
+			}
+
+			parent = getProcessPath();
+			if (!parent.empty())
+			{
+				parent = parent.parent_path();
+				if (std::filesystem::is_directory(parent))
+				{
+					path = parent / "logs";
+					if (!std::filesystem::is_directory(path))
+					{
+						try
+						{
+							std::filesystem::create_directory(path);
+							createdDir = path;
+						}
+						catch (...) {}
+					}
+					if (std::filesystem::is_directory(path))
+					{
+						if (testCreateFile(path))
+						{
+							return cleanDirGuard(path);
+						}
+					}
+					cleanDirGuard("");
+					if (testCreateFile(parent))
+					{
+						return parent;
+					}
+				}
+			}
+
+			parent = std::filesystem::current_path();
+			path = parent / "logs";
+			if (!std::filesystem::is_directory(path))
+			{
+				try
+				{
+					std::filesystem::create_directory(path);
+					createdDir = path;
+				}
+				catch(...) {}
+			}
+			if (std::filesystem::is_directory(path))
+			{
+				if (testCreateFile(path))
+				{
+					return cleanDirGuard(path);
+				}
+			}
+			cleanDirGuard("");
+
+			return parent;
 		}
 
 		/// <summary>
@@ -243,27 +392,11 @@ namespace sgrottel
 		/// <returns>The default name for log files of this process</returns>
 		static std::filesystem::path GetDefaultName()
 		{
-			wchar_t filename[MAX_PATH + 1];
-			DWORD filenameLen = GetModuleFileNameW(nullptr, filename, MAX_PATH);
-			if (filenameLen > 0)
+			std::filesystem::path procPath = getProcessPath();
+			if (!procPath.empty())
 			{
-				return std::filesystem::path{filename, filename + filenameLen}.filename().replace_extension();
+				return procPath.filename().replace_extension();
 			}
-			filenameLen = GetProcessImageFileNameW(GetCurrentProcess(), filename, MAX_PATH);
-			if (filenameLen > 0)
-			{
-				return std::filesystem::path{filename, filename + filenameLen}.filename().replace_extension();
-			}
-
-			if (__argv != nullptr && __argv[0] != nullptr && __argv[0][0] != 0)
-			{
-				return std::filesystem::path{__argv[0]}.filename().replace_extension();
-			}
-			if (__wargv != nullptr && __wargv[0] != nullptr && __wargv[0][0] != 0)
-			{
-				return std::filesystem::path{__wargv[0]}.filename().replace_extension();
-			}
-
 			return std::to_string(GetCurrentProcessId());
 		}
 
