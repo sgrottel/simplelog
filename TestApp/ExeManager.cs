@@ -16,7 +16,8 @@ namespace SimpleLogTest
 	internal static class ExeManager
 	{
 		private static string? testCSharp = null;
-		private static string? testCpp = null;
+		private static string? testCpp32 = null;
+		private static string? testCpp64 = null;
 
 		internal static string TestCSharp
 		{
@@ -34,36 +35,36 @@ namespace SimpleLogTest
 			}
 		}
 
-		internal static string TestCpp
+		internal static string TestCpp32
 		{
 			get
 			{
-				if (testCpp == null)
+				if (testCpp32 == null)
 				{
 					assertExes();
-					if (testCpp == null || System.IO.File.Exists(testCpp) == false)
+					if (testCpp32 == null || System.IO.File.Exists(testCpp32) == false)
 					{
 						throw new Exception("Failed to find TestCpp");
 					}
 				}
-				return testCpp;
+				return testCpp32;
 			}
 		}
 
-		internal enum ImageType
+		internal static string TestCpp64
 		{
-			x86,
-			x64
-		};
-
-		private static ImageType imageType = ImageType.x64;
-		internal static void SetImageType(ImageType imageType)
-		{
-			if (ExeManager.imageType != imageType)
+			get
 			{
-				testCpp = null;
+				if (testCpp64 == null)
+				{
+					assertExes();
+					if (testCpp64 == null || System.IO.File.Exists(testCpp64) == false)
+					{
+						throw new Exception("Failed to find TestCpp");
+					}
+				}
+				return testCpp64;
 			}
-			ExeManager.imageType = imageType;
 		}
 
 		private static void assertExes()
@@ -85,18 +86,18 @@ namespace SimpleLogTest
 				testCSharp = p;
 			}
 
-			if (testCpp == null)
+			if (testCpp32 == null)
 			{
-				string p = Path.Combine(dir, "TestCpp" + imageType.ToString() + ".exe");
+				string p = Path.Combine(dir, "TestCpp32.exe");
 				if (!File.Exists(p))
 				{
-					string sp = FindSourceFile(Path.Combine(dir, @"..\..\..\..\TestCpp\bin"), imageType.ToString(), "TestCpp.exe");
+					string sp = FindSourceFile(Path.Combine(dir, @"..\..\..\..\TestCpp\bin"), "x86", "TestCpp.exe");
 					CopyAllFiles(Path.GetDirectoryName(sp), dir);
 					foreach (string file in Directory.GetFiles(dir))
 					{
 						if (Path.GetFileNameWithoutExtension(file) == "TestCpp")
 						{
-							File.Move(file, Path.Combine(dir, "TestCpp" + imageType.ToString() + Path.GetExtension(file)));
+							File.Move(file, Path.Combine(dir, "TestCpp32" + Path.GetExtension(file)));
 						}
 					}
 				}
@@ -104,7 +105,29 @@ namespace SimpleLogTest
 				{
 					throw new FileNotFoundException();
 				}
-				testCpp = p;
+				testCpp32 = p;
+			}
+
+			if (testCpp64 == null)
+			{
+				string p = Path.Combine(dir, "TestCpp64.exe");
+				if (!File.Exists(p))
+				{
+					string sp = FindSourceFile(Path.Combine(dir, @"..\..\..\..\TestCpp\bin"), "x64", "TestCpp.exe");
+					CopyAllFiles(Path.GetDirectoryName(sp), dir);
+					foreach (string file in Directory.GetFiles(dir))
+					{
+						if (Path.GetFileNameWithoutExtension(file) == "TestCpp")
+						{
+							File.Move(file, Path.Combine(dir, "TestCpp64" + Path.GetExtension(file)));
+						}
+					}
+				}
+				if (!File.Exists(p))
+				{
+					throw new FileNotFoundException();
+				}
+				testCpp64 = p;
 			}
 
 		}

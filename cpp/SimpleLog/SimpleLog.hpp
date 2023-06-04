@@ -18,7 +18,14 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-// Version: 2.?.?
+#ifndef _SIMPLELOG_HPP_INCLUDED_
+#define _SIMPLELOG_HPP_INCLUDED_
+#pragma once
+
+// Version: 2.0.0
+#define SIMPLELOG_VER_MAJOR 2
+#define SIMPLELOG_VER_MINOR 0
+#define SIMPLELOG_VER_PATCH 0
 
 #include <cstdint>
 #include <cstdio>
@@ -405,6 +412,36 @@ namespace sgrottel
 	/// </summary>
 	class EchoingSimpleLog : public SimpleLog
 	{
+	private:
+		/// <summary>
+		/// Implementation to check if this console output should use colors
+		/// </summary>
+		/// <returns>True if this console output should use colors</returns>
+		bool EvalCanUseConsoleColors()
+		{
+			HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+			if (hStdOut == INVALID_HANDLE_VALUE)
+			{
+				return false;
+			}
+			DWORD mode = 0;
+			if (!GetConsoleMode(hStdOut, &mode))
+			{
+				return false;
+			}
+			return (mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) == ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+		}
+
+		/// <summary>
+		/// Checks if this console output should use colors
+		/// </summary>
+		/// <returns>True if this console output should use colors</returns>
+		bool UseConsoleColors()
+		{
+			static bool useColors = EvalCanUseConsoleColors();
+			return useColors;
+		}
+
 	public:
 
 		/// <summary>
@@ -435,10 +472,31 @@ namespace sgrottel
 			SimpleLog::Write(flags, message, messageLength);
 			{
 				std::lock_guard<std::mutex> lock{m_threadLock};
+				bool color = false;
+				if ((flags & FlagError) == FlagError)
+				{
+					if (UseConsoleColors())
+					{
+						printf("\x1b[40m\x1b[91m");
+						color = true;
+					}
+				}
+				else if ((flags & FlagWarning) == FlagWarning)
+				{
+					if (UseConsoleColors())
+					{
+						printf("\x1b[40m\x1b[93m");
+						color = true;
+					}
+				}
 				if (messageLength < 0)
 					printf("%s\n", message);
 				else
 					printf("%.*s\n", messageLength, message);
+				if (color)
+				{
+					printf("\x1b[0m");
+				}
 			}
 		}
 
@@ -454,10 +512,31 @@ namespace sgrottel
 			SimpleLog::Write(flags, message, messageLength);
 			{
 				std::lock_guard<std::mutex> lock{m_threadLock};
+				bool color = false;
+				if ((flags & FlagError) == FlagError)
+				{
+					if (UseConsoleColors())
+					{
+						wprintf(L"\x1b[40m\x1b[91m");
+						color = true;
+					}
+				}
+				else if ((flags & FlagWarning) == FlagWarning)
+				{
+					if (UseConsoleColors())
+					{
+						wprintf(L"\x1b[40m\x1b[93m");
+						color = true;
+					}
+				}
 				if (messageLength < 0)
 					wprintf(L"%s\n", message);
 				else
 					wprintf(L"%.*s\n", messageLength, message);
+				if (color)
+				{
+					wprintf(L"\x1b[0m");
+				}
 			}
 		}
 
@@ -465,3 +544,5 @@ namespace sgrottel
 		using SimpleLog::Write;
 	};
 }
+
+#endif /* _SIMPLELOG_HPP_INCLUDED_ */

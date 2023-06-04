@@ -65,6 +65,18 @@ namespace SGrottel
 	/// </summary>
 	public class SimpleLog : ISimpleLog
 	{
+		/// <summary>
+		/// Major version number constant
+		/// </summary>
+		public const int VERSION_MAJOR = 2;
+		/// <summary>
+		/// Minor version number constant
+		/// </summary>
+		public const int VERSION_MINOR = 3;
+		/// <summary>
+		/// Patch version number constant
+		/// </summary>
+		public const int VERSION_PATCH = 1;
 
 		#region Static Write Convenience Functions
 		static public void Write(ISimpleLog? log, string message) { log?.Write(message); }
