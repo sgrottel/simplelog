@@ -3,7 +3,7 @@
 	"_version": 1,
 	"components": [
 		{
-			"name": "SGrottel SimpleLog",
+			"name": "SGrottel SimpleLog CSharp",
 			"source": [
 				{
 					"type": "git",
