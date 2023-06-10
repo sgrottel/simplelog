@@ -162,7 +162,7 @@ namespace SimpleLogTest
 #if DEBUG
 			const string configuration = "Debug";
 #else
-			const string configuration = "Release;
+			const string configuration = "Release";
 #endif
 			string p = Path.Combine(basePath, configuration);
 			if (!Directory.Exists(p))

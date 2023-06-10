@@ -37,6 +37,7 @@
 #include <mutex>
 #include <fstream>
 #include <clocale>
+#include <stdexcept>
 
 #if !(defined(_WINDOWS_) || defined(_INC_WINDOWS))
 #define WIN32_LEAN_AND_MEAN
@@ -120,6 +121,7 @@ namespace sgrottel
 			buf.get()[(end > 0 && end < bufSize) ? end : 0] = 0;
 			return buf.get();
 		}
+
 		template<typename ...PARAMS>
 		static std::wstring formatString(wchar_t const* format, PARAMS&&... params)
 		{
@@ -130,6 +132,7 @@ namespace sgrottel
 			buf.get()[(end > 0 && end < bufSize) ? end : 0] = 0;
 			return buf.get();
 		}
+
 		static std::string timeStampA()
 		{
 			time_t t = std::time(nullptr);
@@ -137,13 +140,7 @@ namespace sgrottel
 			localtime_s(&now, &t);
 			return formatString("%d-%.2d-%.2d %.2d:%.2d:%.2dZ", now.tm_year + 1900, now.tm_mon + 1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
 		}
-		static std::wstring timeStampW()
-		{
-			time_t t = std::time(nullptr);
-			struct tm now;
-			localtime_s(&now, &t);
-			return formatString(L"%d-%.2d-%.2d %.2d:%.2d:%.2dZ", now.tm_year + 1900, now.tm_mon + 1, now.tm_mday, now.tm_hour, now.tm_min, now.tm_sec);
-		}
+
 		static std::filesystem::path getProcessPath()
 		{
 			// Visual Cpp specific
@@ -169,7 +166,108 @@ namespace sgrottel
 			return {};
 		}
 
-		std::wofstream m_file;
+		/// <summary>
+		/// Utility class to release native resources in a RAII fashion
+		/// </summary>
+		template<typename func_t>
+		class scope_exit
+		{
+		public:
+			scope_exit(func_t&& f) : m_f(std::move(f)) {}
+			~scope_exit()
+			{
+				m_f();
+			}
+		private:
+			func_t m_f;
+		};
+
+		HANDLE m_file{ INVALID_HANDLE_VALUE };
+
+		void toUtf8UnderLock(const char*& outUtf8Str, size_t& outUtf8StrLen, const wchar_t* str, size_t len)
+		{
+			// even if all chars would be 7bit we still would need to copy due to the padding
+			static std::string utf8Str;
+			outUtf8StrLen = WideCharToMultiByte(CP_UTF8, 0, str, static_cast<int>(len), nullptr, 0, nullptr, nullptr);
+			utf8Str.resize(outUtf8StrLen, '\0');
+			WideCharToMultiByte(CP_UTF8, 0, str, static_cast<int>(len), utf8Str.data(), static_cast<int>(outUtf8StrLen), nullptr, nullptr);
+			outUtf8Str = utf8Str.c_str();
+		}
+
+		void toUtf8UnderLock(const char*& outUtf8Str, size_t& outUtf8StrLen, const char* str, size_t len)
+		{
+			bool all7Bit = true;
+			for (size_t i = 0; i < len; ++i)
+			{
+				if (str[i] > 127)
+				{
+					all7Bit = false;
+					break;
+				}
+			}
+			if (all7Bit)
+			{
+				outUtf8Str = str;
+				outUtf8StrLen = len;
+			}
+			else
+			{
+				// full conversion needed
+				int size = MultiByteToWideChar(CP_ACP, MB_COMPOSITE, str, static_cast<int>(len), nullptr, 0);
+				std::wstring wStr(size, '\0');
+				MultiByteToWideChar(CP_ACP, MB_COMPOSITE, str, static_cast<int>(len), wStr.data(), size);
+				toUtf8UnderLock(outUtf8Str, outUtf8StrLen, wStr.c_str(), size);
+			}
+		}
+
+		void writeImplUnderLock(uint32_t flags, char const* msgUtf8, size_t msgUtf8Len)
+		{
+			// assumptions:
+			//  m_file != INVALID_HANDLE_VALUE
+			//  msgUtf8 != nullptr
+			//  msgUtf8Len > 0
+			//  any returns of timeStampA and all local strings and characters in this function are valid UTF8 (7-bit ASCII)
+			std::string ts = timeStampA();
+			size_t bufSize = ts.size();
+
+			const char* typeStr = "";
+			size_t typeStrLen = 0;
+			if (flags & FlagError)
+			{
+				typeStr = "ERROR";
+				typeStrLen = 5;
+			}
+			else if (flags & FlagWarning)
+			{
+				typeStr = "WARNING";
+				typeStrLen = 7;
+			}
+
+			bufSize += typeStrLen;
+			bufSize += msgUtf8Len;
+			bufSize += 3; // pipe, space, new line
+
+			// reuse static buffer to avoid reallocations
+			static std::vector<char> buf;
+			buf.resize(bufSize);
+
+			size_t pos = 0;
+			memcpy(buf.data(), ts.c_str(), ts.size());
+			pos += ts.size();
+			buf.data()[pos++] = '|';
+			if (typeStrLen > 0)
+			{
+				memcpy(buf.data() + pos, typeStr, typeStrLen);
+				pos += typeStrLen;
+			}
+			buf.data()[pos++] = ' ';
+			memcpy(buf.data() + pos, msgUtf8, msgUtf8Len);
+			pos += msgUtf8Len;
+			buf.data()[pos] = '\n';
+
+			WriteFile(m_file, buf.data(), static_cast<DWORD>(bufSize), NULL, NULL);
+			FlushFileBuffers(m_file);
+		}
 
 	protected:
 
@@ -420,24 +518,105 @@ namespace sgrottel
 		/// Creates a SimpleLog instance.
 		/// </summary>
 		/// <param name="directory">The directory where log files are stored</param>
-		/// <param name="name">The name for log files of this process</param>
+		/// <param name="name">The name for log files of this process without file name extension</param>
 		/// <param name="retention">The default log file retention count; must be 2 or larger</param>
 		SimpleLog(std::filesystem::path const& directory, std::filesystem::path const& name, int retention)
 		{
-
-			m_file.open("c:\\temp\\dummy.txt", std::ios::binary);
-			// SGR TODO: Implement
-
-
-
-			if (m_file.is_open())
+			// memory-only writer
+			if (directory.empty() && name.empty())
 			{
-				try
-				{
-					m_file.imbue(std::locale(".utf8"));
-				}
-				catch (...) {}
+				// m_file stays closed
+				return;
 			}
+
+			// check arguments
+			if (directory.empty()) throw std::invalid_argument("directory");
+			if (name.empty()) throw std::invalid_argument("name");
+			{
+				std::string dirStr = directory.string();
+				if (std::all_of(dirStr.begin(), dirStr.end(), isspace)) throw std::invalid_argument("directory");
+			}
+			{
+				std::string nameStr = name.string();
+				if (std::all_of(nameStr.begin(), nameStr.end(), isspace)) throw std::invalid_argument("name");
+			}
+			if (retention < 2) throw std::out_of_range("retention must be 2 or larger");
+
+			// setup
+			HANDLE logSetupMutex = NULL;
+			scope_exit closeLogSetupMutex{ [&logSetupMutex]()
+				{
+					if (logSetupMutex != NULL)
+					{
+						::CloseHandle(logSetupMutex);
+						logSetupMutex = NULL;
+					}
+				} };
+			// Visual Cpp specific
+			logSetupMutex = CreateMutexW(nullptr, FALSE, L"SGROTTEL_SIMPLELOG_CREATION");
+			if (logSetupMutex == NULL)
+			{
+				throw std::runtime_error("Failed to create initializtion mutex");
+			}
+			WaitForSingleObject(logSetupMutex, INFINITE);
+			scope_exit releaseLogSetupMutex{ [&logSetupMutex]()
+				{
+					if (logSetupMutex != NULL)
+					{
+						::ReleaseMutex(logSetupMutex);
+					}
+				} };
+
+			if (!std::filesystem::is_directory(directory))
+			{
+				if (!std::filesystem::is_directory(directory.parent_path())) throw std::runtime_error("Log directory does not exist");
+				std::filesystem::create_directories(directory);
+				if (!std::filesystem::is_directory(directory)) throw std::runtime_error("Failed to create log directory");
+			}
+
+			std::filesystem::path fn = directory / (name.wstring() + L"." + std::to_wstring(retention - 1) + L".log");
+			if (std::filesystem::is_regular_file(fn))
+			{
+				std::filesystem::remove(fn);
+				if (std::filesystem::is_regular_file(fn))
+				{
+					std::string msg = "Failed to delete old log file '" + fn.string() + "'";
+					throw std::runtime_error(msg.c_str());
+				}
+			}
+
+			for (int i = retention - 1; i > 0; --i)
+			{
+				std::filesystem::path tfn = directory / (name.wstring() + L"." + std::to_wstring(i) + L".log");
+				std::filesystem::path sfn = directory / (name.wstring() + L"." + std::to_wstring(i - 1) + L".log");
+				if (i == 1) sfn = sfn = directory / (name.wstring() + L".log");
+				if (!std::filesystem::is_regular_file(sfn)) continue;
+				if (std::filesystem::is_regular_file(tfn))
+				{
+					std::string msg = "Log file retention error. Unexpected log file: '" + tfn.string() + "'";
+					throw std::runtime_error(msg.c_str());
+				}
+				std::filesystem::rename(sfn, tfn);
+				if (std::filesystem::is_regular_file(sfn))
+				{
+					std::string msg = "Log file retention error. Unable to move log file: '" + sfn.string() + "'";
+					throw std::runtime_error(msg.c_str());
+				}
+			}
+
+			fn = directory / (name.wstring() + L".log");
+
+			// Share mode `Delete` allows other processes to rename the file while it is being written.
+			// This works because this process keeps an open file handle to write messages, and never reopens based on a file name.
+			m_file = ::CreateFileW(fn.wstring().c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_DELETE, NULL, OPEN_ALWAYS, NULL, NULL);
+			if (m_file == INVALID_HANDLE_VALUE)
+			{
+				DWORD le = GetLastError();
+				std::string msg = "Failed to create log file: " + std::to_string(le);
+				throw std::runtime_error(msg.c_str());
+			}
+			SetFilePointer(m_file, 0, 0, FILE_END);
+
 		}
 
 		virtual ~SimpleLog()
@@ -445,9 +624,10 @@ namespace sgrottel
 			std::lock_guard<std::mutex> lock{m_threadLock};
 			try
 			{
-				if (m_file.is_open())
+				if (m_file != INVALID_HANDLE_VALUE)
 				{
-					m_file.close();
+					::CloseHandle(m_file);
+					m_file = INVALID_HANDLE_VALUE;
 				}
 			}
 			catch (...) {}
@@ -487,24 +667,19 @@ namespace sgrottel
 		virtual void Write(uint32_t flags, char const* message, int messageLength = -1) override
 		{
 			std::lock_guard<std::mutex> lock{m_threadLock};
-			if (!m_file.is_open()) return;
+			if (m_file == INVALID_HANDLE_VALUE) return;
 
-			const char* typeStr = "";
-			if (flags & FlagError) typeStr = "ERROR ";
-			else if (flags & FlagWarning) typeStr = "WARNING ";
+			const char* utf8Str = nullptr;
+			size_t utf8StrLen = 0;
 
-			m_file << timeStampA().c_str() << "|" << typeStr << " ";
 			if (messageLength < 0)
 			{
-				m_file << message;
+				messageLength = static_cast<int>(strlen(message));
 			}
-			else
-			{
-				// this path is likely the exception, so it's ok that this copy will take a little longer
-				m_file << std::string{ message, message + messageLength }.c_str();
-			}
-			m_file << std::endl;
-			m_file.flush();
+
+			toUtf8UnderLock(utf8Str, utf8StrLen, message, messageLength);
+
+			writeImplUnderLock(flags, utf8Str, utf8StrLen);
 		}
 
 		/// <summary>
@@ -517,24 +692,19 @@ namespace sgrottel
 		virtual void Write(uint32_t flags, wchar_t const* message, int messageLength = -1) override
 		{
 			std::lock_guard<std::mutex> lock{m_threadLock};
-			if (!m_file.is_open()) return;
+			if (m_file == INVALID_HANDLE_VALUE) return;
 
-			const wchar_t* typeStr = L"";
-			if (flags & FlagError) typeStr = L"ERROR ";
-			else if (flags & FlagWarning) typeStr = L"WARNING ";
+			const char* utf8Str = nullptr;
+			size_t utf8StrLen = 0;
 
-			m_file << timeStampW().c_str() << L"|" << typeStr << L" ";
 			if (messageLength < 0)
 			{
-				m_file << message;
+				messageLength = static_cast<int>(wcslen(message));
 			}
-			else
-			{
-				// this path is likely the exception, so it's ok that this copy will take a little longer
-				m_file << std::wstring{ message, message + messageLength };
-			}
-			m_file << std::endl;
-			m_file.flush();
+
+			toUtf8UnderLock(utf8Str, utf8StrLen, message, messageLength);
+
+			writeImplUnderLock(flags, utf8Str, utf8StrLen);
 		}
 
 #endif

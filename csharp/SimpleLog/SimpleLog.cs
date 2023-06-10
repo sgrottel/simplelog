@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-// Version: 2.3.1
+// Version: 2.3.2
 
 #nullable enable
 
@@ -76,7 +76,7 @@ namespace SGrottel
 		/// <summary>
 		/// Patch version number constant
 		/// </summary>
-		public const int VERSION_PATCH = 1;
+		public const int VERSION_PATCH = 2;
 
 		#region Static Write Convenience Functions
 		static public void Write(ISimpleLog? log, string message) { log?.Write(message); }
@@ -257,7 +257,7 @@ namespace SGrottel
 		/// Creates a SimpleLog instance.
 		/// </summary>
 		/// <param name="directory">The directory where log files are stored</param>
-		/// <param name="name">The name for log files of this process</param>
+		/// <param name="name">The name for log files of this process without file name extension</param>
 		/// <param name="retention">The default log file retention count; must be 2 or larger</param>
 		public SimpleLog(string directory, string name, int retention)
 		{
@@ -307,7 +307,11 @@ namespace SGrottel
 
 					// Share mode `Delete` allows other processes to rename the file while it is being written.
 					// This works because this process keeps an open file handle to write messages, and never reopens based on a file name.
-					var file = File.Open(Path.Combine(directory, string.Format("{0}.log", name)), FileMode.OpenOrCreate, FileAccess.Write, FileShare.Delete);
+					var file = File.Open(
+						Path.Combine(directory, string.Format("{0}.log", name)),
+						FileMode.OpenOrCreate,
+						FileAccess.Write,
+						FileShare.Read | FileShare.Delete);
 					file.Seek(0, SeekOrigin.End); // append
 					writer = new StreamWriter(file, new UTF8Encoding(false));
 				}
