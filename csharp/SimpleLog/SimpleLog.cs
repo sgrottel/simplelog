@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-// Version: 2.3.2
+// Version: 2.4.0
 
 #nullable enable
 
@@ -40,12 +40,12 @@ namespace SGrottel
 		/// <summary>
 		/// Flag message as warning
 		/// </summary>
-		const uint FlagWarning = 1;
+		const uint FlagWarning = 0x00000001;
 
 		/// <summary>
 		/// Flag message as error
 		/// </summary>
-		const uint FlagError = 2;
+		const uint FlagError = 0x00000002;
 
 		/// <summary>
 		/// Write a message to the log
@@ -73,11 +73,11 @@ namespace SGrottel
 		/// <summary>
 		/// Minor version number constant
 		/// </summary>
-		public const int VERSION_MINOR = 3;
+		public const int VERSION_MINOR = 4;
 		/// <summary>
 		/// Patch version number constant
 		/// </summary>
-		public const int VERSION_PATCH = 2;
+		public const int VERSION_PATCH = 0;
 
 		#region Static Write Convenience Functions
 		static public void Write(ISimpleLog? log, string message) { log?.Write(message); }
@@ -362,6 +362,12 @@ namespace SGrottel
 	/// </summary>
 	public class EchoingSimpleLog : SimpleLog
 	{
+
+		/// <summary>
+		/// Flag message to not be echoed to the console
+		/// </summary>
+		public const uint FlagDontEcho = 0x00010000;
+
 		/// <summary>
 		/// Creates a EchoingSimpleLog with default values for directory, name, and retention
 		/// </summary>
@@ -400,27 +406,30 @@ namespace SGrottel
 		public override void Write(uint flags, string message)
 		{
 			base.Write(flags, message);
-			lock (threadLock)
+			if ((flags & FlagDontEcho) != FlagDontEcho)
 			{
-				bool isError = (flags & ISimpleLog.FlagError) == ISimpleLog.FlagError;
-				bool isWarning = (flags & ISimpleLog.FlagWarning) == ISimpleLog.FlagWarning;
-
-				if (UseColor && isError)
+				lock (threadLock)
 				{
-					Console.BackgroundColor = ConsoleColor.Black;
-					Console.ForegroundColor = ConsoleColor.Red;
-				}
-				else if (UseColor && isWarning)
-				{
-					Console.BackgroundColor = ConsoleColor.Black;
-					Console.ForegroundColor = ConsoleColor.Yellow;
-				}
+					bool isError = (flags & ISimpleLog.FlagError) == ISimpleLog.FlagError;
+					bool isWarning = (flags & ISimpleLog.FlagWarning) == ISimpleLog.FlagWarning;
 
-				((UseErrorOut && (isError || isWarning)) ? Console.Error : Console.Out).WriteLine(message);
+					if (UseColor && isError)
+					{
+						Console.BackgroundColor = ConsoleColor.Black;
+						Console.ForegroundColor = ConsoleColor.Red;
+					}
+					else if (UseColor && isWarning)
+					{
+						Console.BackgroundColor = ConsoleColor.Black;
+						Console.ForegroundColor = ConsoleColor.Yellow;
+					}
 
-				if (UseColor && (isError || isWarning))
-				{
-					Console.ResetColor();
+					((UseErrorOut && (isError || isWarning)) ? Console.Error : Console.Out).WriteLine(message);
+
+					if (UseColor && (isError || isWarning))
+					{
+						Console.ResetColor();
+					}
 				}
 			}
 		}

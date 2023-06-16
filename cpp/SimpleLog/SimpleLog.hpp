@@ -22,9 +22,9 @@
 #define _SIMPLELOG_HPP_INCLUDED_
 #pragma once
 
-// Version: 2.0.0
+// Version: 2.1.0
 #define SIMPLELOG_VER_MAJOR 2
-#define SIMPLELOG_VER_MINOR 0
+#define SIMPLELOG_VER_MINOR 1
 #define SIMPLELOG_VER_PATCH 0
 
 #include <cstdint>
@@ -60,12 +60,12 @@ namespace sgrottel
 		/// <summary>
 		/// Flag message as warning
 		/// </summary>
-		static constexpr uint32_t const FlagWarning = 1;
+		static constexpr uint32_t const FlagWarning = 0x00000001;
 
 		/// <summary>
 		/// Flag message as error
 		/// </summary>
-		static constexpr uint32_t const FlagError = 2;
+		static constexpr uint32_t const FlagError = 0x00000002;
 
 		/// <summary>
 		/// Write a message to the log
@@ -748,6 +748,11 @@ namespace sgrottel
 	public:
 
 		/// <summary>
+		/// Flag message to not be echoed to the console
+		/// </summary>
+		static constexpr uint32_t const FlagDontEcho = 0x00010000;
+
+		/// <summary>
 		/// Creates a EchoingSimpleLog with default values for directory, name, and retention
 		/// </summary>
 		EchoingSimpleLog() : SimpleLog() {}
@@ -773,6 +778,7 @@ namespace sgrottel
 		virtual void Write(uint32_t flags, char const* message, int messageLength = -1) override
 		{
 			SimpleLog::Write(flags, message, messageLength);
+			if ((flags & FlagDontEcho) != FlagDontEcho)
 			{
 				std::lock_guard<std::mutex> lock{m_threadLock};
 				bool color = false;
@@ -813,6 +819,7 @@ namespace sgrottel
 		virtual void Write(uint32_t flags, wchar_t const* message, int messageLength = -1) override
 		{
 			SimpleLog::Write(flags, message, messageLength);
+			if ((flags & FlagDontEcho) != FlagDontEcho)
 			{
 				std::lock_guard<std::mutex> lock{m_threadLock};
 				bool color = false;
