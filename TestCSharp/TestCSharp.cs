@@ -34,7 +34,7 @@ internal class TestCSharp
 
 		EchoingSimpleLog log = new(logDir, "TestSimpleLog", 4);
 
-		SimpleLog.Write(log, "Started {0:u}", DateTime.Now);
+		log.Write(EchoingSimpleLog.FlagDontEcho, string.Format("Started {0:u}", DateTime.Now));
 
 		SimpleLog.Write(log, "Default Directory: {0}", SimpleLog.GetDefaultDirectory());
 		SimpleLog.Write(log, "Default Name: {0}", SimpleLog.GetDefaultName());

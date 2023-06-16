@@ -47,14 +47,14 @@ int wmain(int argc, wchar_t const* argv[])
 	time_t t = std::time(nullptr);
 	struct tm now;
 	localtime_s(&now, &t);
-	std::stringstream timestamp;
-	timestamp << (now.tm_year + 1900)
+	std::stringstream startMsg;
+	startMsg << "Started " << (now.tm_year + 1900)
 		<< "-" << std::setfill('0') << std::setw(2) << (now.tm_mon + 1)
 		<< "-" << std::setfill('0') << std::setw(2) << now.tm_mday
 		<< " " << std::setfill('0') << std::setw(2) << now.tm_hour
 		<< ":" << std::setfill('0') << std::setw(2) << now.tm_min
 		<< ":" << std::setfill('0') << std::setw(2) << now.tm_sec << "Z";
-	SimpleLog::Write(log, "Started %s", timestamp.str().c_str());
+	log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, startMsg.str().c_str());
 
 	SimpleLog::Write(log, L"Default Directory: %s", SimpleLog::GetDefaultDirectory().generic_wstring().c_str());
 	SimpleLog::Write(log, "Default Name: %s", SimpleLog::GetDefaultName().generic_string().c_str());
