@@ -9,7 +9,7 @@
 					"type": "git",
 					"url": "https://www.github.com/sgrottel/tiny-tools-collection",
 					"hash": "1130b03b63d4bff76ed9586466ed9499f68579ee",
-					"version": "2.0.0",
+					"version": "2.1.0",
 					"path": "cpp/SimpleLog"
 				}
 			]
