@@ -8,7 +8,7 @@
 				{
 					"type": "git",
 					"url": "https://www.github.com/sgrottel/simplelog",
-					"hash": "bc7247a89438244e3c7ed0c551d9cc6298a85fef",
+					"hash": "ddc07541bade40c1c2a3da1f896729cb6a208190",
 					"version": "2.4.1",
 					"path": "csharp/SimpleLog"
 				}
