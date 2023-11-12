@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-// Version: 2.4.0
+// Version: 2.4.1
 
 #nullable enable
 
@@ -77,7 +77,7 @@ namespace SGrottel
 		/// <summary>
 		/// Patch version number constant
 		/// </summary>
-		public const int VERSION_PATCH = 0;
+		public const int VERSION_PATCH = 1;
 
 		#region Static Write Convenience Functions
 		static public void Write(ISimpleLog? log, string message) { log?.Write(message); }
@@ -153,12 +153,16 @@ namespace SGrottel
 			}
 
 			parent = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-			IntPtr pszPath = IntPtr.Zero;
-			// try getting "%appdata%\LocalLow"
-			int hr = SHGetKnownFolderPath(new Guid("A520A1A4-1780-4FF6-BD18-167343C5AF16"), 0, IntPtr.Zero, out pszPath);
-			if (hr >= 0) parent = Marshal.PtrToStringAuto(pszPath);
-			// else parent will stay as "%appdata%\Local"
-			if (pszPath != IntPtr.Zero) Marshal.FreeCoTaskMem(pszPath);
+			try
+			{
+				IntPtr pszPath = IntPtr.Zero;
+				// try getting "%appdata%\LocalLow"
+				int hr = SHGetKnownFolderPath(new Guid("A520A1A4-1780-4FF6-BD18-167343C5AF16"), 0, IntPtr.Zero, out pszPath);
+				if (hr >= 0) parent = Marshal.PtrToStringAuto(pszPath);
+				// else parent will stay as "%appdata%\Local"
+				if (pszPath != IntPtr.Zero) Marshal.FreeCoTaskMem(pszPath);
+			}
+			catch { }
 			if (Directory.Exists(parent))
 			{
 				path = Path.Combine(parent, "sgrottel_simplelog");
