@@ -1,20 +1,9 @@
-# SGrottel SimpleLog™  <img src="images/SimpleLog_x64.png" alt="SimpleLog Icon" align="left" style="height:1.25em;margin-right:0.25em">
+# SGrottel SimpleLog™ for Cpp
+Version: 2.2.0
+
 A very simple log files implementation.
 Logs strings with time stamps into log files and implements log file retention.
 Integrates via source component (e.g. single header file for cpp), not a lib.
-
-<!-- PACKET OMIT START -->
-![GitHub](https://img.shields.io/github/license/sgrottel/simplelog)
-
-<!-- PACKET OMIT END -->
-
-## Integrate in CSharp Project
-There are two ways to add SimpleLog™ to your CSharp project:
-
-1. Copy and add the subdirectory [./csharp/SimpleLog](./csharp/SimpleLog) to your project.
-   While it is sufficient to only add the file [./csharp/SimpleLog/SimpleLog.cs](./csharp/SimpleLog/SimpleLog.cs) to your project, it is recommended to add the whole subdirectory with all files.
-   Make sure that `SimpleLog.cs` is compiled as part of your project.
-2. 🚧 TODO: Nuget Package
 
 
 ## Integrate in Cpp Project
@@ -29,10 +18,6 @@ After integration, you should be able to include the header file via:
 #include "SimpleLog/SimpleLog.hpp"
 ```
 You might need to adjust your project configurations for a matching include search path.
-
-
-## CSharp Usage Example
-🚧 TODO
 
 
 ## Cpp Usage Example

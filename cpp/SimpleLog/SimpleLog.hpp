@@ -1,31 +1,28 @@
-// Copyright 2022-2023 SGrottel (www.sgrottel.de)
+// SimpleLog.hpp
+// Version: 2.2.0
 //
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
+// Copyright 2022-2024 SGrottel (www.sgrottel.de)
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #ifndef _SIMPLELOG_HPP_INCLUDED_
 #define _SIMPLELOG_HPP_INCLUDED_
 #pragma once
 
-// Version: 2.1.0
 #define SIMPLELOG_VER_MAJOR 2
-#define SIMPLELOG_VER_MINOR 1
+#define SIMPLELOG_VER_MINOR 2
 #define SIMPLELOG_VER_PATCH 0
+#define SIMPLELOG_VER_BUILD 0
 
 #include <cstdint>
 #include <cstdio>
@@ -43,8 +40,12 @@
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
 #include <Windows.h>
+#endif
+
+#ifndef WINSHELLAPI
 #include <shlobj_core.h>
 #endif
+
 #include <psapi.h>
 
 namespace sgrottel
@@ -274,7 +275,7 @@ namespace sgrottel
 		/// <summary>
 		/// Mutex used to thread-lock all output
 		/// </summary>
-		std::mutex m_threadLock;
+		mutable std::mutex m_threadLock;
 
 	public:
 
@@ -631,6 +632,43 @@ namespace sgrottel
 				}
 			}
 			catch (...) {}
+		}
+
+		std::filesystem::path GetFilePath() const
+		{
+			std::lock_guard<std::mutex> lock{ m_threadLock };
+			if (m_file == INVALID_HANDLE_VALUE)
+			{
+				return {};
+			}
+
+			std::vector<wchar_t> strBuf;
+			DWORD rv = GetFinalPathNameByHandleW(m_file, strBuf.data(), static_cast<DWORD>(strBuf.size()), FILE_NAME_NORMALIZED);
+			if (rv == 0)
+			{
+				DWORD le = GetLastError();
+				std::string msg = "Failed query log file path: " + std::to_string(le);
+				throw std::runtime_error(msg.c_str());
+			}
+
+			if (static_cast<size_t>(rv) > strBuf.size())
+			{
+				strBuf.resize(rv);
+				rv = GetFinalPathNameByHandleW(m_file, strBuf.data(), static_cast<DWORD>(strBuf.size()), FILE_NAME_NORMALIZED);
+				if (rv == 0)
+				{
+					DWORD le = GetLastError();
+					std::string msg = "Failed query log file path 2: " + std::to_string(le);
+					throw std::runtime_error(msg.c_str());
+				}
+
+				if (static_cast<size_t>(rv) > strBuf.size())
+				{
+					throw std::runtime_error("Failed query log file path 2: memory allocation failure");
+				}
+			}
+
+			return std::filesystem::path{ strBuf.data(), strBuf.data() + rv };
 		}
 
 #if 1 /* REGION: implementation of ISampleLog */
