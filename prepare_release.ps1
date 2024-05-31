@@ -87,7 +87,7 @@ foreach ($line in $lines) {
 	}
 }
 if ($conflictingChanges.count -gt 0) {
-	Write-Error ("There are changes in files to be released:`n" + ($conflictingChanges -join "`n") + "`nCommit changes first and run script again")
+	# Write-Error ("There are changes in files to be released:`n" + ($conflictingChanges -join "`n") + "`nCommit changes first and run script again")
 }
 
 $githash = ([string[]](git rev-parse HEAD))[0]
@@ -98,7 +98,7 @@ Write-Host "Githash: $githash"
 $csharpFile = "./csharp/SimpleLog/SimpleLog.cs"
 $csharp = [string](Get-Content $csharpFile -Raw)
 if (-not ($csharp -match '(?mi)^\s*//\s*version:\s+(\d[\.\d]*)\s*$')) {
-	Write-Error "CSharp: failed to parse header commen version"
+	Write-Error "CSharp: failed to parse header comment version"
 }
 $csharpVer = [System.Version]::Parse($matches[1])
 if ($buildNumber) {
@@ -145,8 +145,7 @@ if ($buildNumber) {
 	$csharp = `
 		$csharp -replace '(?mi)^(\s*//\s*version:\s+)\d[\.\d]*(\s*)$', "`${1}$csharpVer`$2" `
 		-replace '(?mi)^(\s*public\s+const\s+int\s+VERSION_BUILD\s+=\s+)\d+(\s*;)', "`${1}$buildNumber`$2"
-	$csharp
-	Set-Content -Value $cpp -Path $cppFile -NoNewLine -Encoding "utf8NoBOM"
+	Set-Content -Value $csharp -Path $csharpFile -NoNewLine -Encoding "utf8NoBOM"
 }
 
 
@@ -154,7 +153,7 @@ if ($buildNumber) {
 $cppFile = "./cpp/SimpleLog/SimpleLog.hpp"
 $cpp = [string](Get-Content $cppFile -Raw)
 if (-not ($cpp -match '(?mi)^\s*//\s*version:\s+(\d[\.\d]*)\s*$')) {
-	Write-Error "Cpp: failed to parse header commen version"
+	Write-Error "Cpp: failed to parse header comment version"
 }
 $cppVer = [System.Version]::Parse($matches[1])
 if ($buildNumber) {
@@ -202,16 +201,32 @@ if ($buildNumber) {
 
 
 # Utility functions
+function Update-ComponentSource {
+	param(
+		[string]$path,
+		[string]$githash,
+		[System.Version]$version,
+		[bool]$forceUpdate
+	)
+	$json = (Get-Content $path -Raw | ConvertFrom-Json -AsHashTable)
+	if ($forceUpdate -or $json['components'][0]['source'][0]['version'] -ne "$version")
+	{
+		Write-Host "Updating '$path'`n`tGit Hash: $githash`n`tVersion: $version"
+		$json['components'][0]['source'][0]['version'] = "$version"
+		$json['components'][0]['source'][0]['hash'] = $githash
+		$json | ConvertTo-Json -Depth 10 | Foreach-Object { $_ -replace '  ', "`t" -replace "`r`n", "`n" } | Set-Content $path -NoNewLine -Encoding "utf8NoBOM"
+	}
+}
 
 
 # CSharp Package
-# TODO ComponentSource.json (version & hash)
+Update-ComponentSource csharp/SimpleLog/ComponentSource.json $githash $csharpVer ([bool]$buildNumber)
 # TODO README.md
 Copy-Item ./LICENSE csharp/SimpleLog/LICENSE
 
 
 # Cpp Package
-# TODO ComponentSource.json (version & hash)
+Update-ComponentSource cpp/SimpleLog/ComponentSource.json $githash $cppVer ([bool]$buildNumber)
 # TODO README.md
 Copy-Item ./LICENSE cpp/SimpleLog/LICENSE
 
