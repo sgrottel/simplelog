@@ -73,6 +73,10 @@ namespace SGrottel
 		/// Patch version number constant
 		/// </summary>
 		public const int VERSION_PATCH = 1;
+		/// <summary>
+		/// Patch version number constant
+		/// </summary>
+		public const int VERSION_BUILD = 0;
 
 		#region Static Write Convenience Functions
 		static public void Write(ISimpleLog? log, string message) { log?.Write(message); }

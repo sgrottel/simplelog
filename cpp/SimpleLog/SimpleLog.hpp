@@ -22,6 +22,7 @@
 #define SIMPLELOG_VER_MAJOR 2
 #define SIMPLELOG_VER_MINOR 2
 #define SIMPLELOG_VER_PATCH 0
+#define SIMPLELOG_VER_BUILD 0
 
 #include <cstdint>
 #include <cstdio>
