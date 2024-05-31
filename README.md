@@ -6,6 +6,36 @@ Integrates via source component (e.g. single header file for cpp), not a lib.
 ![GitHub](https://img.shields.io/github/license/sgrottel/simplelog)
 
 
+## Integrate in CSharp Project
+There are two ways to add SimpleLog™ to your CSharp project:
+
+1. Copy and add the subdirectory [./csharp/SimpleLog](./csharp/SimpleLog) to your project.
+   While it is sufficient to only add the file [./csharp/SimpleLog/SimpleLog.cs](./csharp/SimpleLog/SimpleLog.cs) to your project, it is recommended to add the whole subdirectory with all files.
+   Make sure that `SimpleLog.cs` is compiled as part of your project.
+2. TODO: Nuget Package
+
+
+## Integrate in Cpp Project
+There are two ways to add SimpleLog™ to your Cpp project:
+
+1. Copy and add the subdirectory [./cpp/SimpleLog](./cpp/SimpleLog) to your project.
+   While it is sufficient to only add the file [./cpp/SimpleLog/SimpleLog.hpp](./cpp/SimpleLog/SimpleLog.hpp) to your project, it is recommended to add the whole subdirectory with all files.
+2. TODO: Nuget Package
+
+After integration, you should be able to include the header file via:
+```cpp
+#include "SimpleLog/SimpleLog.hpp"
+```
+You might need to adjust your project configurations for a matching include search path.
+
+
+## CSharp Usage Example
+
+TODO
+
+
+## Cpp Usage Example
+
 TODO
 
 
