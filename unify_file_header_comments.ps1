@@ -1,4 +1,4 @@
-# SimpleLog  unify_file_header_comments.ps1
+# unify_file_header_comments.ps1  SimpleLog
 #
 # Copyright 2022-2024 SGrottel (www.sgrottel.de)
 #
@@ -87,22 +87,34 @@ foreach ($file in $files) {
 			$content += $line
 		}
 	}
-
-	Write-Host "CONTENT:"
 	if ($content) {
 		$content = $content[1..($content.count)]
 	} else {
 		$content = @()
 	}
-	$content
 
-	Write-Host "HEADER:"
-	$header
+	$newHeader = @()
+	$line = "$prefix $($file.Name)"
+	if ([System.IO.Path]::ChangeExtension($file.Name, $null).ToLower() -ne 'simplelog.') {
+		$line += "  SimpleLog"
+	}
+	if (($file.Directory.FullName -ne $PSScriptRoot) -and ($file.Directory.Name.ToLower() -ne 'simplelog')) {
+		$line += "  " + $file.Directory.Name
+	}
+	$newHeader += $line
+	if ($header[1] -match "^$prefix\s+Version") {
+		$newHeader += $header[1]
+	}
+	$newHeader += $prefix
+	foreach ($line in $license) {
+		$newHeader += "$prefix $line".Trim()
+	}
 
-	Write-Host "DONE"
-
-	break;
+	if (($newHeader -join "`n") -eq ($header -join "`n")) {
+		Write-Host "`tAlready up to date"
+	} else {
+		Write-Host "`tHeader updated"
+		Set-Content -Path $file -Value ((($newHeader + $content) -join "`n") + "`n") -NoNewLine -Encoding "utf8NoBOM"
+	}
 }
-
-
-# Write-Error "NOT IMPLEMENTED"
+Write-Host "done."
