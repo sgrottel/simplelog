@@ -87,7 +87,7 @@ foreach ($line in $lines) {
 	}
 }
 if ($conflictingChanges.count -gt 0) {
-	# Write-Error ("There are changes in files to be released:`n" + ($conflictingChanges -join "`n") + "`nCommit changes first and run script again")
+	Write-Error ("There are changes in files to be released:`n" + ($conflictingChanges -join "`n") + "`nCommit changes first and run script again")
 }
 
 $githash = ([string[]](git rev-parse HEAD))[0]
@@ -218,17 +218,50 @@ function Update-ComponentSource {
 	}
 }
 
+function Build-ReadMe {
+	param(
+		[string]$path,
+		[string]$nameSelect,
+		[string]$nameSkip,
+		[System.Version]$version
+	)
+	[Collections.ArrayList]$lines = @();
+	$skipToNextOnLevel = 1000;
+	foreach ($section in $readmeSections)
+	{
+		$cap = $section.caption
+		$level = $readmeSectionsLevel[$cap]
+		if ($cap.contains($nameSkip)) {
+			$skipToNextOnLevel = $level
+			continue
+		}
+		if ($level -gt $skipToNextOnLevel) {
+			continue
+		}
+		$skipToNextOnLevel = 1000;
+
+		$lines += ''.PadLeft($level, '#') + " $cap"
+		$lines += $section.lines
+	}
+
+	$lines[0] = $lines[0].Trim() + " for $nameSelect"
+	$lines.Insert(1, "Version: $version")
+	$lines.Insert(2, '')
+	Write-Host "Writing $path"
+	Set-Content -Path $path -Value (($lines -join "`n") + "`n") -NoNewLine -Encoding "utf8NoBOM"
+}
+
 
 # CSharp Package
 Update-ComponentSource csharp/SimpleLog/ComponentSource.json $githash $csharpVer ([bool]$buildNumber)
-# TODO README.md
+Build-ReadMe csharp/SimpleLog/README.md CSharp Cpp $csharpVer
 Copy-Item ./LICENSE csharp/SimpleLog/LICENSE
 
 
 # Cpp Package
 Update-ComponentSource cpp/SimpleLog/ComponentSource.json $githash $cppVer ([bool]$buildNumber)
-# TODO README.md
+Build-ReadMe cpp/SimpleLog/README.md Cpp CSharp $cppVer
 Copy-Item ./LICENSE cpp/SimpleLog/LICENSE
 
 
-Write-Error "NOT IMPLEMENTED"
+Write-Host "done."
