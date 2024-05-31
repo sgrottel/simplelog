@@ -74,7 +74,7 @@ namespace SGrottel
 		/// </summary>
 		public const int VERSION_PATCH = 1;
 		/// <summary>
-		/// Patch version number constant
+		/// Build version number constant
 		/// </summary>
 		public const int VERSION_BUILD = 0;
 

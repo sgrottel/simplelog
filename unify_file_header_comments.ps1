@@ -23,7 +23,7 @@ $readmeSections = @{};
 $caption = '';
 $lines = @();
 foreach ($line in $readme) {
-	if ($line -match "^\s*#{1,}\s*(\S.*)\s*$") {
+	if ($line -match '^\s*#{1,}\s*(\S.*)\s*$') {
 		if ($lines.count -gt 0) {
 			$readmeSections.add($caption, $lines);
 		}

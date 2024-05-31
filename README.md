@@ -3,8 +3,10 @@ A very simple log files implementation.
 Logs strings with time stamps into log files and implements log file retention.
 Integrates via source component (e.g. single header file for cpp), not a lib.
 
+<!-- PACKET OMIT START -->
 ![GitHub](https://img.shields.io/github/license/sgrottel/simplelog)
 
+<!-- PACKET OMIT END -->
 
 ## Integrate in CSharp Project
 There are two ways to add SimpleLog™ to your CSharp project:
@@ -12,7 +14,7 @@ There are two ways to add SimpleLog™ to your CSharp project:
 1. Copy and add the subdirectory [./csharp/SimpleLog](./csharp/SimpleLog) to your project.
    While it is sufficient to only add the file [./csharp/SimpleLog/SimpleLog.cs](./csharp/SimpleLog/SimpleLog.cs) to your project, it is recommended to add the whole subdirectory with all files.
    Make sure that `SimpleLog.cs` is compiled as part of your project.
-2. TODO: Nuget Package
+2. 🚧 TODO: Nuget Package
 
 
 ## Integrate in Cpp Project
@@ -20,7 +22,7 @@ There are two ways to add SimpleLog™ to your Cpp project:
 
 1. Copy and add the subdirectory [./cpp/SimpleLog](./cpp/SimpleLog) to your project.
    While it is sufficient to only add the file [./cpp/SimpleLog/SimpleLog.hpp](./cpp/SimpleLog/SimpleLog.hpp) to your project, it is recommended to add the whole subdirectory with all files.
-2. TODO: Nuget Package
+2. 🚧 TODO: Nuget Package
 
 After integration, you should be able to include the header file via:
 ```cpp
@@ -30,13 +32,11 @@ You might need to adjust your project configurations for a matching include sear
 
 
 ## CSharp Usage Example
-
-TODO
+🚧 TODO
 
 
 ## Cpp Usage Example
-
-TODO
+🚧 TODO
 
 
 ## License
