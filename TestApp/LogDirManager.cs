@@ -1,4 +1,4 @@
-﻿// Copyright 2022-2023 SGrottel (www.sgrottel.de)
+// Copyright 2022-2023 SGrottel (www.sgrottel.de)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
