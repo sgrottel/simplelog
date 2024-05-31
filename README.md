@@ -1,9 +1,10 @@
 # SGrottel SimpleLog™  <img src="images/SimpleLog_x64.png" alt="SimpleLog Icon" align="left" style="height:1.25em;margin-right:0.25em">
-A very simple log implementation.
-Nothing fancy, only log strings to log files and log file retention.
-Usable as source component, not a lib.
+A very simple log files implementation.
+Logs strings with time stamps into log files and implements log file retention.
+Integrates via source component (e.g. single header file for cpp), not a lib.
 
 ![GitHub](https://img.shields.io/github/license/sgrottel/simplelog)
+
 
 TODO
 
