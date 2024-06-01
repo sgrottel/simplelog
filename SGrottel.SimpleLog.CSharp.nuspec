@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+	<!-- nuget pack .\SGrottel.SimpleLog.CSharp.nuspec -->
+
+	<!-- package metadata -->
+	<metadata minClientVersion="3.3">
+		<id>SGrottel.SimpleLog.CSharp</id>
+		<version>2.4.1</version>
+		<title>SGrottel.SimpleLog.CSharp</title>
+		<authors>SGrottel</authors>
+		<owners>SGrottel</owners>
+		<license type="expression">Apache-2.0</license>
+		<projectUrl>https://github.com/sgrottel/simplelog</projectUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<icon>docs/logo.png</icon>
+		<description>
+			A very simple log files implementation.
+			Logs strings with time stamps into log files and implements log file retention.
+		</description>
+		<copyright>Copyright 2022-2024 SGrottel (www.sgrottel.de)</copyright>
+		<tags>Logs</tags>
+		<readme>docs/README.md</readme>
+
+		<contentFiles>
+			<files include="cs/any/SimpleLog/SimpleLog.cs" />
+			<files include="cs/any/SimpleLog/ComponentSource.json" buildAction="None" />
+		</contentFiles>
+	</metadata>
+
+	<!-- content -->
+	<files>
+		<!-- code -->
+		<file src="csharp\SimpleLog\SimpleLog.cs" target="contentFiles/cs/any/SimpleLog" />
+		<file src="csharp\SimpleLog\ComponentSource.json" target="contentFiles/cs/any/SimpleLog" />
+
+		<!-- doc -->
+		<file src="csharp\SimpleLog\LICENSE" target="docs/LICENSE" />
+		<file src="csharp\SimpleLog\README.md" target="docs/README.md" />
+		<file src="images\SimpleLog_x128.png" target="docs/logo.png" />
+	</files>
+
+</package>

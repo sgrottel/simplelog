@@ -3,3 +3,4 @@
 **/obj
 desktop.ini
 **/Properties/launchSettings.json
+*.nupkg

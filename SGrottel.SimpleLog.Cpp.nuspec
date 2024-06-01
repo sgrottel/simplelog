@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+	<!-- nuget pack .\SGrottel.SimpleLog.Cpp.nuspec -->
+
+	<!-- package metadata -->
+	<metadata>
+		<id>SGrottel.SimpleLog.Cpp</id>
+		<version>2.2.0</version>
+		<title>SGrottel SimpleLog Cpp</title>
+		<authors>SGrottel</authors>
+		<owners>SGrottel</owners>
+		<license type="expression">Apache-2.0</license>
+		<projectUrl>https://github.com/sgrottel/simplelog</projectUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<icon>docs/logo.png</icon>
+		<description>
+			A very simple log files implementation.
+			Logs strings with time stamps into log files and implements log file retention.
+		</description>
+		<copyright>Copyright 2022-2024 SGrottel (www.sgrottel.de)</copyright>
+		<tags>Logs native nativepackage</tags>
+		<readme>docs/README.md</readme>
+	</metadata>
+
+	<!-- content -->
+	<files>
+		<!-- includes -->
+		<file src="cpp\SimpleLog\SimpleLog.hpp" target="build\native\include\SimpleLog" />
+		<file src="cpp\SimpleLog\ComponentSource.json" target="build\native\include\SimpleLog" />
+
+		<!-- VS files -->
+		<file src="SGrottel.SimpleLog.Cpp.targets" target="build\native\SGrottel.SimpleLog.Cpp.targets" />
+
+		<!-- doc -->
+		<file src="cpp\SimpleLog\LICENSE" target="docs/LICENSE" />
+		<file src="cpp\SimpleLog\README.md" target="docs/README.md" />
+		<file src="images\SimpleLog_x128.png" target="docs/logo.png" />
+	</files>
+
+</package>
