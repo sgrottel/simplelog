@@ -4,7 +4,10 @@ Logs strings with time stamps into log files and implements log file retention.
 Integrates via source component (e.g. single header file for cpp), not a lib.
 
 <!-- PACKET OMIT START -->
-![GitHub](https://img.shields.io/github/license/sgrottel/simplelog)
+[![GitHub](https://img.shields.io/github/license/sgrottel/simplelog)](LICENSE)
+[![NuGet Version](https://img.shields.io/nuget/v/SGrottel.SimpleLog.CSharp?logo=nuget&label=CSharp)
+](https://www.nuget.org/packages/SGrottel.SimpleLog.CSharp/)
+[![NuGet Version](https://img.shields.io/nuget/v/SGrottel.SimpleLog.Cpp?logo=nuget&label=Cpp)](https://www.nuget.org/packages/SGrottel.SimpleLog.Cpp/)
 
 <!-- PACKET OMIT END -->
 

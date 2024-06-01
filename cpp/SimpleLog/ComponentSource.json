@@ -8,8 +8,8 @@
 				{
 					"type": "git",
 					"url": "https://www.github.com/sgrottel/simplelog",
-					"hash": "bc7247a89438244e3c7ed0c551d9cc6298a85fef",
 					"version": "2.2.0",
+					"hash": "3f05d18479a380572c4d7aed15de1c76a07fc518",
 					"path": "cpp/SimpleLog"
 				}
 			]
