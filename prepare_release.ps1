@@ -251,17 +251,33 @@ function Build-ReadMe {
 	Set-Content -Path $path -Value (($lines -join "`n") + "`n") -NoNewLine -Encoding "utf8NoBOM"
 }
 
+function Update-Nuspec {
+	param(
+		[string]$path,
+		[System.Version]$version
+	)
+	Write-Host "Updating version in $path"
+	$nuspec = New-Object System.XML.XMLDocument
+	$nuspec.PreserveWhitespace = $true
+	$nuspecPath = Resolve-Path $path
+	$nuspec.Load($nuspecPath)
+	$nuspec.package.metadata.version = $version.ToString()
+	$nuspec.Save($nuspecPath)
+}
+
 
 # CSharp Package
 Update-ComponentSource csharp/SimpleLog/ComponentSource.json $githash $csharpVer ([bool]$buildNumber)
 Build-ReadMe csharp/SimpleLog/README.md CSharp Cpp $csharpVer
 Copy-Item ./LICENSE csharp/SimpleLog/LICENSE
+Update-Nuspec SGrottel.SimpleLog.CSharp.nuspec $csharpVer
 
 
 # Cpp Package
 Update-ComponentSource cpp/SimpleLog/ComponentSource.json $githash $cppVer ([bool]$buildNumber)
 Build-ReadMe cpp/SimpleLog/README.md Cpp CSharp $cppVer
 Copy-Item ./LICENSE cpp/SimpleLog/LICENSE
+Update-Nuspec SGrottel.SimpleLog.Cpp.nuspec $cppVer
 
 
 Write-Host "done."
