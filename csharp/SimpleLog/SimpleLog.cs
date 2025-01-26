@@ -513,7 +513,7 @@ namespace SGrottel
 		/// If set to `true`, critical, error, and warning messages will be echoed to `Console.Error`.
 		/// For normal and detail messages or if this is set to `false` the messages will be echoed to `Console.Out`
 		/// </summary>
-		public bool UseErrorOut { get; set; } = true;
+		public bool UseErrorOut { get; set; } = false;
 
 		/// <summary>
 		/// If set to `true`,
