@@ -1,6 +1,6 @@
 // ExeManager.cs  SimpleLog  TestApp
 //
-// Copyright 2022-2024 SGrottel (www.sgrottel.de)
+// Copyright 2022-2025 SGrottel (www.sgrottel.de)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ namespace SimpleLogTest
 			{
 				if (testCSharp == null)
 				{
-					assertExes();
+					AssertExes();
 					if (testCSharp == null || System.IO.File.Exists(testCSharp) == false)
 					{
 						throw new Exception("Failed to find TestCSharp");
@@ -50,7 +50,7 @@ namespace SimpleLogTest
 			{
 				if (testCpp32 == null)
 				{
-					assertExes();
+					AssertExes();
 					if (testCpp32 == null || System.IO.File.Exists(testCpp32) == false)
 					{
 						throw new Exception("Failed to find TestCpp");
@@ -66,7 +66,7 @@ namespace SimpleLogTest
 			{
 				if (testCpp64 == null)
 				{
-					assertExes();
+					AssertExes();
 					if (testCpp64 == null || System.IO.File.Exists(testCpp64) == false)
 					{
 						throw new Exception("Failed to find TestCpp");
@@ -76,7 +76,7 @@ namespace SimpleLogTest
 			}
 		}
 
-		private static void assertExes()
+		private static void AssertExes()
 		{
 			string dir = AppContext.BaseDirectory;
 
@@ -143,10 +143,7 @@ namespace SimpleLogTest
 
 		private static void CopyAllFiles(string? from, string to)
 		{
-			if (from == null)
-			{
-				throw new ArgumentNullException();
-			}
+			ArgumentNullException.ThrowIfNull(from);
 			foreach (string srcFile in Directory.GetFiles(from))
 			{
 				File.Copy(srcFile, Path.Combine(to, Path.GetFileName(srcFile)), true);
@@ -198,13 +195,15 @@ namespace SimpleLogTest
 
 		internal static Process Start(string exe, string? arg, bool wait)
 		{
-			ProcessStartInfo psi = new ProcessStartInfo(exe);
-			psi.FileName = exe;
+			ProcessStartInfo psi = new(exe)
+			{
+				FileName = exe,
+				WorkingDirectory = Path.GetDirectoryName(exe)
+			};
 			psi.ArgumentList.Clear();
 			if (wait && arg == null) arg = "";
 			if (arg != null) psi.ArgumentList.Add(arg);
 			if (wait) psi.ArgumentList.Add("-wait");
-			psi.WorkingDirectory = Path.GetDirectoryName(exe);
 
 			return Process.Start(psi) ?? throw new Exception();
 		}
