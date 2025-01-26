@@ -40,6 +40,7 @@ You might need to adjust your project configurations for a matching include sear
 ## Cpp Usage Example
 🚧 TODO
 
+<!-- PACKET OMIT START -->
 
 ### Note on Char-Array-Pointer Strings + Length
 Sometimes, especially in the context of de-/serialization strings might be represented by a pointer to char arrays and a length.
@@ -61,6 +62,8 @@ To use string-based formatting, you can utilize `stringstream` objects:
 ```cpp
 log.Write(0, (std::stringstream{} << "Value: " << v).str());
 ```
+
+<!-- PACKET OMIT END -->
 
 ## License
 This project is freely available as open source under the terms of the [Apache License, Version 2.0](LICENSE)

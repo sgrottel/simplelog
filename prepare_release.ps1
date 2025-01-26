@@ -105,22 +105,22 @@ if ($buildNumber) {
 	$csharpVer = New-Object System.Version @($csharpVer.Major, $csharpVer.Minor, $csharpVer.Build, $buildNumber)
 }
 
-$matches = [Text.RegularExpressions.MatchCollection]([Regex]::Matches($csharp, '(?mi)^\s*public\s+const\s+int\s+VERSION_MAJOR\s+=\s+(\d+)\s*;'))
+$matches = [Text.RegularExpressions.MatchCollection]([Regex]::Matches($csharp, '(?mi)^\s*const\s+int\s+VERSION_MAJOR\s+=\s+(\d+)\s*;'))
 if ($matches.count -ne 1) {
 	Write-Error "CSharp: failed to identify exactly one VERSION_MAJOR field"
 }
 $csharpVerMajor = [int]$matches[0].Groups[1].Value
-$matches = [Text.RegularExpressions.MatchCollection]([Regex]::Matches($csharp, '(?mi)^\s*public\s+const\s+int\s+VERSION_MINOR\s+=\s+(\d+)\s*;'))
+$matches = [Text.RegularExpressions.MatchCollection]([Regex]::Matches($csharp, '(?mi)^\s*const\s+int\s+VERSION_MINOR\s+=\s+(\d+)\s*;'))
 if ($matches.count -ne 1) {
 	Write-Error "CSharp: failed to identify exactly one VERSION_MINOR field"
 }
 $csharpVerMinor = [int]$matches[0].Groups[1].Value
-$matches = [Text.RegularExpressions.MatchCollection]([Regex]::Matches($csharp, '(?mi)^\s*public\s+const\s+int\s+VERSION_PATCH\s+=\s+(\d+)\s*;'))
+$matches = [Text.RegularExpressions.MatchCollection]([Regex]::Matches($csharp, '(?mi)^\s*const\s+int\s+VERSION_PATCH\s+=\s+(\d+)\s*;'))
 if ($matches.count -ne 1) {
 	Write-Error "CSharp: failed to identify exactly one VERSION_PATCH field"
 }
 $csharpVerPatch = [int]$matches[0].Groups[1].Value
-$matches = [Text.RegularExpressions.MatchCollection]([Regex]::Matches($csharp, '(?mi)^\s*public\s+const\s+int\s+VERSION_BUILD\s+=\s+(\d+)\s*;'))
+$matches = [Text.RegularExpressions.MatchCollection]([Regex]::Matches($csharp, '(?mi)^\s*const\s+int\s+VERSION_BUILD\s+=\s+(\d+)\s*;'))
 if ($matches.count -ne 1) {
 	Write-Error "CSharp: failed to identify exactly one VERSION_BUILD field"
 }
