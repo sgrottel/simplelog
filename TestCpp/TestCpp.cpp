@@ -1,6 +1,6 @@
 // TestCpp.cpp  SimpleLog  TestCpp
 //
-// Copyright 2022-2024 SGrottel (www.sgrottel.de)
+// Copyright 2022-2025 SGrottel (www.sgrottel.de)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,11 +24,13 @@
 
 #include <iostream>
 #include <string>
+#include <string_view>
 #include <sstream>
 
 int wmain(int argc, wchar_t const* argv[])
 {
-	using sgrottel::SimpleLog;
+	using sgrottel::ISimpleLog;
+	using namespace std::string_view_literals;
 
 	bool waitForSemaphore = (argc > 2 && wcscmp(argv[2], L"-wait") == 0);
 
@@ -37,8 +39,9 @@ int wmain(int argc, wchar_t const* argv[])
 	std::filesystem::path exename{filenameBuf, filenameBuf + filenameLen};
 
 	std::filesystem::path logDir = exename.parent_path() / "log";
-
-	sgrottel::EchoingSimpleLog log{ logDir.generic_wstring(), "TestSimpleLog", 4 };
+	
+	sgrottel::SimpleLog logFile{ logDir.generic_wstring(), "TestSimpleLog", 4 };
+	sgrottel::EchoingSimpleLog log{ logFile };
 
 	time_t t = std::time(nullptr);
 	struct tm now;
@@ -52,9 +55,9 @@ int wmain(int argc, wchar_t const* argv[])
 		<< ":" << std::setfill('0') << std::setw(2) << now.tm_sec << "Z";
 	log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, startMsg.str().c_str());
 
-	SimpleLog::Write(log, L"Default Directory: %s", SimpleLog::GetDefaultDirectory().generic_wstring().c_str());
-	SimpleLog::Write(log, "Default Name: %s", SimpleLog::GetDefaultName().generic_string().c_str());
-	SimpleLog::Write(log, L"Default Retention: %d", SimpleLog::GetDefaultRetention());
+	log.Write(ISimpleLog::FlagLevelDetail, L"Default Directory: %s", sgrottel::SimpleLog::GetDefaultDirectory().generic_wstring().c_str());
+	log.Write(ISimpleLog::FlagLevelDetail, "Default Name: %s", sgrottel::SimpleLog::GetDefaultName().generic_string().c_str());
+	log.Write(ISimpleLog::FlagLevelDetail, L"Default Retention: %d", sgrottel::SimpleLog::GetDefaultRetention());
 
 	if (waitForSemaphore)
 	{
@@ -75,7 +78,7 @@ int wmain(int argc, wchar_t const* argv[])
 				{
 					std::cout << std::endl;
 					std::cerr << "FAILED TO WAIT: " << waited << std::endl;
-					SimpleLog::Error(log, "FAILED TO WAIT: %d", static_cast<int>(waited));
+					log.Write(ISimpleLog::FlagLevelError, "FAILED TO WAIT: %d", static_cast<int>(waited));
 					return 1;
 				}
 				else
@@ -88,15 +91,16 @@ int wmain(int argc, wchar_t const* argv[])
 	}
 
 	PrintMessage(log, L"And now for something completely different:");
-	SimpleLog::Error(log, "An Error");
-	SimpleLog::Warning(log, L"A Warning");
-	SimpleLog::Write(log, std::string{"And a normal Message"});
+	log.Write(ISimpleLog::FlagLevelCritial, "A Critical"sv.data());
+	log.Write(ISimpleLog::FlagLevelError, "An Error");
+	log.Write(ISimpleLog::FlagLevelWarning, L"A Warning");
+	log.Write(0, std::string{"And a hidden Message"}.c_str());
 
-	SimpleLog::Write(&log, "Formatting away: %s %S %s %s %S", "The", L"quick", "Fox", "doesn't", L"care!");
+	log.Write(ISimpleLog::FlagLevelDetail, "Formatting away: %s %S %s %s %S"sv, "The", L"quick", "Fox", "doesn't", L"care!");
 
-	SimpleLog::Write(log, L"Arg: %s", (argc > 1) ? argv[1] : L"none");
+	log.Write(0, L"Arg: %s", (argc > 1) ? argv[1] : L"none");
 
-	log.Write("Done.XYZ", 5);
+	log.Write(0, std::string_view{ "Done.XYZ", 5 });
 
 	return 0;
 }

@@ -204,10 +204,12 @@ namespace SGrottel
 	{
 		public void Write(string message)
 		{
+			// intentionally empty
 			// omitting all messages
 		}
 		public void Write(uint flags, string message)
 		{
+			// intentionally empty
 			// omitting all messages
 		}
 	};
