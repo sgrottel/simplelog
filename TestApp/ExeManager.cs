@@ -1,6 +1,6 @@
 // ExeManager.cs  SimpleLog  TestApp
 //
-// Copyright 2022-2024 SGrottel (www.sgrottel.de)
+// Copyright 2022-2025 SGrottel (www.sgrottel.de)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ namespace SimpleLogTest
 			{
 				if (testCSharp == null)
 				{
-					assertExes();
+					AssertExes();
 					if (testCSharp == null || System.IO.File.Exists(testCSharp) == false)
 					{
 						throw new Exception("Failed to find TestCSharp");
@@ -50,7 +50,7 @@ namespace SimpleLogTest
 			{
 				if (testCpp32 == null)
 				{
-					assertExes();
+					AssertExes();
 					if (testCpp32 == null || System.IO.File.Exists(testCpp32) == false)
 					{
 						throw new Exception("Failed to find TestCpp");
@@ -66,7 +66,7 @@ namespace SimpleLogTest
 			{
 				if (testCpp64 == null)
 				{
-					assertExes();
+					AssertExes();
 					if (testCpp64 == null || System.IO.File.Exists(testCpp64) == false)
 					{
 						throw new Exception("Failed to find TestCpp");
@@ -76,7 +76,7 @@ namespace SimpleLogTest
 			}
 		}
 
-		private static void assertExes()
+		private static void AssertExes()
 		{
 			string dir = AppContext.BaseDirectory;
 
@@ -98,55 +98,55 @@ namespace SimpleLogTest
 			if (testCpp32 == null)
 			{
 				string p = Path.Combine(dir, "TestCpp32.exe");
-				if (!File.Exists(p))
-				{
-					string sp = FindSourceFile(Path.Combine(dir, @"..\..\..\..\TestCpp\bin"), "x86", "TestCpp.exe");
-					CopyAllFiles(Path.GetDirectoryName(sp), dir);
-					foreach (string file in Directory.GetFiles(dir))
-					{
-						if (Path.GetFileNameWithoutExtension(file) == "TestCpp")
-						{
-							File.Move(file, Path.Combine(dir, "TestCpp32" + Path.GetExtension(file)));
-						}
-					}
-				}
-				if (!File.Exists(p))
-				{
-					throw new FileNotFoundException();
-				}
+				AssertCppExe(p, "x86");
 				testCpp32 = p;
 			}
 
 			if (testCpp64 == null)
 			{
 				string p = Path.Combine(dir, "TestCpp64.exe");
-				if (!File.Exists(p))
-				{
-					string sp = FindSourceFile(Path.Combine(dir, @"..\..\..\..\TestCpp\bin"), "x64", "TestCpp.exe");
-					CopyAllFiles(Path.GetDirectoryName(sp), dir);
-					foreach (string file in Directory.GetFiles(dir))
-					{
-						if (Path.GetFileNameWithoutExtension(file) == "TestCpp")
-						{
-							File.Move(file, Path.Combine(dir, "TestCpp64" + Path.GetExtension(file)));
-						}
-					}
-				}
-				if (!File.Exists(p))
-				{
-					throw new FileNotFoundException();
-				}
+				AssertCppExe(p, "x64");
 				testCpp64 = p;
 			}
 
 		}
 
+		private static void AssertCppExe(string targetFile, string buildSubdir)
+		{
+			string dir = Path.GetDirectoryName(targetFile)!;
+
+			string sourceFile = FindSourceFile(Path.Combine(dir, @"..\..\..\..\TestCpp\bin"), buildSubdir, "TestCpp.exe");
+
+			DateTime targetDate = File.Exists(targetFile) ? File.GetLastWriteTime(targetFile) : DateTime.MinValue;
+			DateTime sourceDate = File.Exists(sourceFile) ? File.GetLastWriteTime(sourceFile) : DateTime.MinValue;
+
+			if (!File.Exists(targetFile) || sourceDate > targetDate)
+			{
+				CopyAllFiles(Path.GetDirectoryName(sourceFile), dir);
+
+				foreach (string file in Directory.GetFiles(dir).ToArray())
+				{
+					if (Path.GetFileNameWithoutExtension(file) == "TestCpp")
+					{
+						string tarName = Path.GetFileNameWithoutExtension(targetFile) + Path.GetExtension(file);
+						if (File.Exists(tarName))
+						{
+							File.Delete(tarName);
+						}
+						File.Move(file, Path.Combine(dir, tarName));
+					}
+				}
+			}
+
+			if (!File.Exists(targetFile))
+			{
+				throw new FileNotFoundException();
+			}
+		}
+
 		private static void CopyAllFiles(string? from, string to)
 		{
-			if (from == null)
-			{
-				throw new ArgumentNullException();
-			}
+			ArgumentNullException.ThrowIfNull(from);
 			foreach (string srcFile in Directory.GetFiles(from))
 			{
 				File.Copy(srcFile, Path.Combine(to, Path.GetFileName(srcFile)), true);
@@ -198,13 +198,15 @@ namespace SimpleLogTest
 
 		internal static Process Start(string exe, string? arg, bool wait)
 		{
-			ProcessStartInfo psi = new ProcessStartInfo(exe);
-			psi.FileName = exe;
+			ProcessStartInfo psi = new(exe)
+			{
+				FileName = exe,
+				WorkingDirectory = Path.GetDirectoryName(exe)
+			};
 			psi.ArgumentList.Clear();
 			if (wait && arg == null) arg = "";
 			if (arg != null) psi.ArgumentList.Add(arg);
 			if (wait) psi.ArgumentList.Add("-wait");
-			psi.WorkingDirectory = Path.GetDirectoryName(exe);
 
 			return Process.Start(psi) ?? throw new Exception();
 		}

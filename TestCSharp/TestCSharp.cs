@@ -1,6 +1,6 @@
 // TestCSharp.cs  SimpleLog  TestCSharp
 //
-// Copyright 2022-2024 SGrottel (www.sgrottel.de)
+// Copyright 2022-2025 SGrottel (www.sgrottel.de)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,8 +15,10 @@
 // limitations under the License.
 
 using SGrottel;
+using System;
+using System.IO;
 using System.Reflection;
-using System.Reflection.Metadata;
+using System.Threading;
 
 internal class TestCSharp
 {
@@ -28,21 +30,21 @@ internal class TestCSharp
 
 		string logDir = Path.Combine(Path.GetDirectoryName(asm.Location) ?? ".", "log");
 
-		EchoingSimpleLog log = new(logDir, "TestSimpleLog", 4);
+		EchoingSimpleLog log = new(new SimpleLog(logDir, "TestSimpleLog", 4));
 
 		log.Write(EchoingSimpleLog.FlagDontEcho, string.Format("Started {0:u}", DateTime.Now));
 
-		SimpleLog.Write(log, "Default Directory: {0}", SimpleLog.GetDefaultDirectory());
-		SimpleLog.Write(log, "Default Name: {0}", SimpleLog.GetDefaultName());
-		SimpleLog.Write(log, "Default Retention: {0}", SimpleLog.GetDefaultRetention());
+		log.Detail($"Default Directory: {(SimpleLog.GetDefaultDirectory())}");
+		log.Detail($"Default Name: {(SimpleLog.GetDefaultName())}");
+		log.Detail($"Default Retention: {(SimpleLog.GetDefaultRetention())}");
 
 		if (waitForSemaphore)
 		{
-			using (Semaphore readySemaphore = new Semaphore(0, 1, "SGROTTEL_SIMPLELOG_TEST_READY"))
+			using (Semaphore readySemaphore = new(0, 1, "SGROTTEL_SIMPLELOG_TEST_READY"))
 			{
 				readySemaphore.Release(1);
 				Console.Write("Signaling being ready");
-				using (Semaphore waitSemaphore = new Semaphore(0, 1, "SGROTTEL_SIMPLELOG_TEST_WAIT"))
+				using (Semaphore waitSemaphore = new(0, 1, "SGROTTEL_SIMPLELOG_TEST_WAIT"))
 				{
 					Console.Write("Waiting...");
 					bool sig = waitSemaphore.WaitOne(TimeSpan.FromMinutes(10));
@@ -50,7 +52,7 @@ internal class TestCSharp
 					{
 						Console.WriteLine();
 						Console.Error.WriteLine("FAILED TO WAIT: timeout");
-						SimpleLog.Error(log, "FAILED TO WAIT: timeout");
+						log.Error("FAILED TO WAIT: timeout");
 						return 1;
 					}
 					else
@@ -62,13 +64,14 @@ internal class TestCSharp
 		}
 
 		log.Write("And now for something completely different:");
-		SimpleLog.Error(log, "An Error");
-		SimpleLog.Warning(log, "A Warning");
-		SimpleLog.Write(log, "And a normal Message");
+		log.Critical("A Critical");
+		log.Error("An Error");
+		log.Warning("A Warning");
+		log.Message(ISimpleLog.FlagLevelError | EchoingSimpleLog.FlagDontEcho, "And a hidden Message");
 
-		SimpleLog.Write(log, "Formatting away: {0} {1} {2} {3} {4}", new object[]{ "The", "quick", "Fox", "doesn't", "care!"});
+		log.Detail(string.Format("Formatting away: {0} {1} {2} {3} {4}", ["The", "quick", "Fox", "doesn't", "care!"]));
 
-		SimpleLog.Write(log, "Arg: {0}", (args.Length > 0) ? args[0] : "none");
+		log.Write($"Arg: {((args.Length > 0) ? args[0] : "none")}");
 
 		log.Write("Done.");
 

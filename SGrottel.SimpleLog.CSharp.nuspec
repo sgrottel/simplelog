@@ -5,7 +5,7 @@
 	<!-- package metadata -->
 	<metadata minClientVersion="3.3">
 		<id>SGrottel.SimpleLog.CSharp</id>
-		<version>2.4.1</version>
+		<version>3.0.0</version>
 		<title>SGrottel.SimpleLog.CSharp</title>
 		<authors>SGrottel</authors>
 		<owners>SGrottel</owners>

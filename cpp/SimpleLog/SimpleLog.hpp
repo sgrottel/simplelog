@@ -1,7 +1,7 @@
 // SimpleLog.hpp
-// Version: 2.2.0
+// Version: 3.0.0
 //
-// Copyright 2022-2024 SGrottel (www.sgrottel.de)
+// Copyright 2022-2025 SGrottel (www.sgrottel.de)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@
 #define _SIMPLELOG_HPP_INCLUDED_
 #pragma once
 
-#define SIMPLELOG_VER_MAJOR 2
-#define SIMPLELOG_VER_MINOR 2
+#define SIMPLELOG_VER_MAJOR 3
+#define SIMPLELOG_VER_MINOR 0
 #define SIMPLELOG_VER_PATCH 0
 #define SIMPLELOG_VER_BUILD 0
 
@@ -35,6 +35,9 @@
 #include <fstream>
 #include <clocale>
 #include <stdexcept>
+#include <string_view>
+
+#include <iostream>
 
 #if !(defined(_WINDOWS_) || defined(_INC_WINDOWS))
 #define WIN32_LEAN_AND_MEAN
@@ -57,53 +60,372 @@ namespace sgrottel
 	class ISimpleLog
 	{
 	public:
+		/// <summary>
+		/// Major version number constant
+		/// </summary>
+		static constexpr int const VERSION_MAJOR = 3;
 
 		/// <summary>
-		/// Flag message as warning
+		/// Minor version number constant
 		/// </summary>
-		static constexpr uint32_t const FlagWarning = 0x00000001;
+		static constexpr int const VERSION_MINOR = 0;
+
+		/// <summary>
+		/// Patch version number constant
+		/// </summary>
+		static constexpr int const VERSION_PATCH = 0;
+
+		/// <summary>
+		/// Build version number constant
+		/// </summary>
+		static constexpr int const VERSION_BUILD = 0;
+
+		/// <summary>
+		/// Flag message as critical error
+		/// </summary>
+		static constexpr uint32_t const FlagLevelCritial = 0x00000007;
 
 		/// <summary>
 		/// Flag message as error
 		/// </summary>
-		static constexpr uint32_t const FlagError = 0x00000002;
+		static constexpr uint32_t const FlagLevelError = 0x00000005;
 
 		/// <summary>
-		/// Write a message to the log
+		/// Flag message as warning
 		/// </summary>
-		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
-		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
-		/// If set less than zero, the message string is treated being zero terminated.</param>
-		virtual void Write(char const* message, int messageLength = -1) = 0;
+		static constexpr uint32_t const FlagLevelWarning = 0x0000003;
 
 		/// <summary>
-		/// Write a message to the log
+		/// Flag message as normal information message
 		/// </summary>
-		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
-		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
-		/// If set less than zero, the message string is treated being zero terminated.</param>
-		virtual void Write(wchar_t const* message, int messageLength = -1) = 0;
+		static constexpr uint32_t const FlagLevelMessage = 0x0000000;
+
+		/// <summary>
+		/// Flag message as detail information
+		/// </summary>
+		static constexpr uint32_t const FlagLevelDetail = 0x00000001;
+
+		/// <summary>
+		/// Masks the bits of the flags field which are used to specify the message level
+		/// </summary>
+		static constexpr uint32_t const FlagLevelMask = 0x00000007;
+
+	protected:
 
 		/// <summary>
 		/// Write a message to the log
 		/// </summary>
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
-		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
-		/// If set less than zero, the message string is treated being zero terminated.</param>
-		virtual void Write(uint32_t flags, char const* message, int messageLength = -1) = 0;
+		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
+		virtual void WriteImpl(uint32_t flags, char const* message, size_t messageLength) = 0;
 
 		/// <summary>
 		/// Write a message to the log
 		/// </summary>
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
-		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
-		/// If set less than zero, the message string is treated being zero terminated.</param>
-		virtual void Write(uint32_t flags, wchar_t const* message, int messageLength = -1) = 0;
+		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
+		virtual void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) = 0;
+
+		/// <summary>
+		/// Utility function to forward the write arguments to the implementation with another object (unknown class of this base).
+		/// </summary>
+		template<typename LOG, typename CHAR>
+		void ForwardWriteImpl(LOG& log, uint32_t flags, CHAR const* message, size_t messageLength)
+		{
+			log.WriteImpl(flags, message, messageLength);
+		}
+
+		/// <summary>
+		/// Printf-based formatting of a string; must be zero-terminated.
+		/// </summary>
+		template<typename ...PARAMS>
+		static std::string formatString(char const* format, PARAMS&&... params)
+		{
+			// Visual Cpp specific
+			size_t bufSize = _scprintf(format, params...) + 1;
+			std::shared_ptr<char> buf{ new char[bufSize], [](char* p) { delete[] p; } };
+			size_t end = sprintf_s(buf.get(), bufSize, format, params...);
+			buf.get()[(end > 0 && end < bufSize) ? end : 0] = 0;
+			return buf.get();
+		}
+
+		/// <summary>
+		/// Printf-based formatting of a wstring; must be zero-terminated.
+		/// </summary>
+		template<typename ...PARAMS>
+		static std::wstring formatString(wchar_t const* format, PARAMS&&... params)
+		{
+			// Visual Cpp specific
+			size_t bufSize = _scwprintf(format, params...) + 1;
+			std::shared_ptr<wchar_t> buf{ new wchar_t[bufSize], [](wchar_t* p) { delete[] p; } };
+			size_t end = swprintf_s(buf.get(), bufSize, format, params...);
+			buf.get()[(end > 0 && end < bufSize) ? end : 0] = 0;
+			return buf.get();
+		}
+
+	public:
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string; must be zero-terminated. Expected to NOT contain a new line at the end.</param>
+		inline void Write(uint32_t flags, char const* message)
+		{
+			this->WriteImpl(flags, message, std::strlen(message));
+		}
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string; must be zero-terminated. Expected to NOT contain a new line at the end.</param>
+		inline void Write(uint32_t flags, wchar_t const* message)
+		{
+			this->WriteImpl(flags, message, std::wcslen(message));
+		}
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		template<typename CHAR, typename TRAITS>
+		inline void Write(uint32_t flags, std::basic_string_view<CHAR, TRAITS> const& message)
+		{
+			this->WriteImpl(flags, message.data(), message.length());
+		}
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		template<typename CHAR, typename TRAITS, typename ALLOCATOR>
+		inline void Write(uint32_t flags, std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message)
+		{
+			this->WriteImpl(flags, message.data(), message.length());
+		}
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string; must be zero-terminated. Expected to NOT contain a new line at the end.
+		/// Formatting follows the specification of the printf function family.</param>
+		/// <param name="p1">The first formatting argument</param>
+		/// <param name="...params">Additional formatting arguments</param>
+		template<typename PARAM1, typename ...PARAMS>
+		inline void Write(uint32_t flags, char const* message, PARAM1&& p1, PARAMS&&... params)
+		{
+			this->Write(flags, formatString(message, std::forward<PARAM1>(p1), std::forward<PARAMS>(params)...));
+		}
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string; must be zero-terminated. Expected to NOT contain a new line at the end.
+		/// Formatting follows the specification of the printf function family.</param>
+		/// <param name="p1">The first formatting argument</param>
+		/// <param name="...params">Additional formatting arguments</param>
+		template<typename PARAM1, typename ...PARAMS>
+		inline void Write(uint32_t flags, wchar_t const* message, PARAM1&& p1, PARAMS&&... params)
+		{
+			this->Write(flags, formatString(message, std::forward<PARAM1>(p1), std::forward<PARAMS>(params)...));
+		}
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.
+		/// Formatting follows the specification of the printf function family.</param>
+		/// <param name="p1">The first formatting argument</param>
+		/// <param name="...params">Additional formatting arguments</param>
+		template<typename CHAR, typename TRAITS, typename PARAM1, typename ...PARAMS>
+		inline void Write(uint32_t flags, std::basic_string_view<CHAR, TRAITS> const& message, PARAM1&& p1, PARAMS&&... params)
+		{
+			this->Write(flags, formatString(std::basic_string<CHAR>{message}.c_str(), std::forward<PARAM1>(p1), std::forward<PARAMS>(params)...));
+		}
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.
+		/// Formatting follows the specification of the printf function family.</param>
+		/// <param name="p1">The first formatting argument</param>
+		/// <param name="...params">Additional formatting arguments</param>
+		template<typename CHAR, typename TRAITS, typename ALLOCATOR, typename PARAM1, typename ...PARAMS>
+		inline void Write(uint32_t flags, std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAM1&& p1, PARAMS&&... params)
+		{
+			this->Write(flags, formatString(message.c_str(), std::forward<PARAM1>(p1), std::forward<PARAMS>(params)...));
+		}
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="message">The message string; must be zero-terminated. Expected to NOT contain a new line at the end.</param>
+		/// <param name="...params">Additional formatting arguments, if any. Formatting follows the specification of the printf function family.</param>
+		template<typename ...PARAMS>
+		inline void Write(char const* message, PARAMS&&... params)
+		{
+			this->Write(static_cast<uint32_t>(0), message, std::forward<PARAMS>(params)...);
+		}
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="message">The message string; must be zero-terminated. Expected to NOT contain a new line at the end.</param>
+		/// <param name="...params">Additional formatting arguments, if any. Formatting follows the specification of the printf function family.</param>
+		template<typename ...PARAMS>
+		inline void Write(wchar_t const* message, PARAMS&&... params)
+		{
+			this->Write(static_cast<uint32_t>(0), message, std::forward<PARAMS>(params)...);
+		}
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		/// <param name="...params">Additional formatting arguments, if any. Formatting follows the specification of the printf function family.</param>
+		template<typename CHAR, typename TRAITS, typename ...PARAMS>
+		inline void Write(std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		{
+			this->Write(static_cast<uint32_t>(0), message, std::forward<PARAMS>(params)...);
+		}
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		/// <param name="...params">Additional formatting arguments, if any. Formatting follows the specification of the printf function family.</param>
+		template<typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
+		inline void Write(std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		{
+			this->Write(static_cast<uint32_t>(0), message, std::forward<PARAMS>(params)...);
+		}
+
+	private:
+
+		template<uint32_t LEVEL, typename ...PARAMS>
+		inline void Special(uint32_t flags, char const* message, PARAMS&&... params)
+		{
+			this->Write(LEVEL | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<uint32_t LEVEL, typename ...PARAMS>
+		inline void Special(uint32_t flags, wchar_t const* message, PARAMS&&... params)
+		{
+			this->Write(LEVEL | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<uint32_t LEVEL, typename CHAR, typename TRAITS, typename ...PARAMS>
+		inline void Special(uint32_t flags, std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		{
+			this->Write(LEVEL | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<uint32_t LEVEL, typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
+		inline void Special(uint32_t flags, std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		{
+			this->Write(LEVEL | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<uint32_t LEVEL, typename ...PARAMS>
+		inline void Special(char const* message, PARAMS&&... params)
+		{
+			this->Write(LEVEL, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<uint32_t LEVEL, typename ...PARAMS>
+		inline void Special(wchar_t const* message, PARAMS&&... params)
+		{
+			this->Write(LEVEL, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<uint32_t LEVEL, typename CHAR, typename TRAITS, typename ...PARAMS>
+		inline void Special(std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		{
+			this->Write(LEVEL, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<uint32_t LEVEL, typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
+		inline void Special(std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		{
+			this->Write(LEVEL, message, std::forward<PARAMS>(params)...);
+		}
+
+	public:
+
+		/// <summary>
+		/// Specialization of the Write function. Use the same arguments as with any of the write overloads.
+		/// The log level bits will be overwritten, and the message with be logged as critical error message.
+		/// </summary>
+		template<typename ...PARAMS>
+		inline void Critical(PARAMS&&... params) {
+			ISimpleLog::Special<ISimpleLog::FlagLevelCritial>(std::forward<PARAMS>(params)...);
+		}
+
+		/// <summary>
+		/// Specialization of the Write function. Use the same arguments as with any of the write overloads.
+		/// The log level bits will be overwritten, and the message with be logged as error message.
+		/// </summary>
+		template<typename ...PARAMS>
+		inline void Error(PARAMS&&... params) {
+			ISimpleLog::Special<ISimpleLog::FlagLevelError>(std::forward<PARAMS>(params)...);
+		}
+
+		/// <summary>
+		/// Specialization of the Write function. Use the same arguments as with any of the write overloads.
+		/// The log level bits will be overwritten, and the message with be logged as warning.
+		/// </summary>
+		template<typename ...PARAMS>
+		inline void Warning(PARAMS&&... params) {
+			ISimpleLog::Special<ISimpleLog::FlagLevelWarning>(std::forward<PARAMS>(params)...);
+		}
+
+		/// <summary>
+		/// Specialization of the Write function. Use the same arguments as with any of the write overloads.
+		/// The log level bits will be overwritten, and the message with be logged as message.
+		/// </summary>
+		template<typename ...PARAMS>
+		inline void Message(PARAMS&&... params) {
+			ISimpleLog::Special<ISimpleLog::FlagLevelMessage>(std::forward<PARAMS>(params)...);
+		}
+
+		/// <summary>
+		/// Specialization of the Write function. Use the same arguments as with any of the write overloads.
+		/// The log level bits will be overwritten, and the message with be logged as detail message.
+		/// </summary>
+		template<typename ...PARAMS>
+		inline void Detail(PARAMS&&... params) {
+			ISimpleLog::Special<ISimpleLog::FlagLevelDetail>(std::forward<PARAMS>(params)...);
+		}
 
 	protected:
 		virtual ~ISimpleLog() = default;
+	};
+
+	/// <summary>
+	/// A null implementation of ISimpleLog
+	/// </summary>
+	class NullLog : public ISimpleLog
+	{
+	protected:
+		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) override
+		{
+			// intentionally empty
+			// omitting all messages
+		}
+		void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) override
+		{
+			// intentionally empty
+			// omitting all messages
+		}
 	};
 
 	/// <summary>
@@ -112,27 +434,6 @@ namespace sgrottel
 	class SimpleLog : public ISimpleLog
 	{
 	private:
-		template<typename ...PARAMS>
-		static std::string formatString(char const* format, PARAMS&&... params)
-		{
-			// Visual Cpp specific
-			size_t bufSize = _scprintf(format, params...) + 1;
-			std::shared_ptr<char> buf{ new char[bufSize], [](char* p) { delete[] p; }};
-			size_t end = sprintf_s(buf.get(), bufSize, format, params...);
-			buf.get()[(end > 0 && end < bufSize) ? end : 0] = 0;
-			return buf.get();
-		}
-
-		template<typename ...PARAMS>
-		static std::wstring formatString(wchar_t const* format, PARAMS&&... params)
-		{
-			// Visual Cpp specific
-			size_t bufSize = _scwprintf(format, params...) + 1;
-			std::shared_ptr<wchar_t> buf{ new wchar_t[bufSize], [](wchar_t* p) { delete[] p; }};
-			size_t end = swprintf_s(buf.get(), bufSize, format, params...);
-			buf.get()[(end > 0 && end < bufSize) ? end : 0] = 0;
-			return buf.get();
-		}
 
 		static std::string timeStampA()
 		{
@@ -221,7 +522,7 @@ namespace sgrottel
 			}
 		}
 
-		void writeImplUnderLock(uint32_t flags, char const* msgUtf8, size_t msgUtf8Len)
+		void writeImplUnderLock(uint32_t flags, char const* msgUtf8, size_t msgUtf8Len) const
 		{
 			// assumptions:
 			//  m_file != INVALID_HANDLE_VALUE
@@ -233,15 +534,25 @@ namespace sgrottel
 
 			const char* typeStr = "";
 			size_t typeStrLen = 0;
-			if (flags & FlagError)
+			if ((flags & FlagLevelMask) == FlagLevelCritial)
+			{
+				typeStr = "CRITICAL";
+				typeStrLen = 8;
+			}
+			else if ((flags & FlagLevelMask) == FlagLevelError)
 			{
 				typeStr = "ERROR";
 				typeStrLen = 5;
 			}
-			else if (flags & FlagWarning)
+			else if ((flags & FlagLevelMask) == FlagLevelWarning)
 			{
 				typeStr = "WARNING";
 				typeStrLen = 7;
+			}
+			else if ((flags & FlagLevelMask) == FlagLevelDetail)
+			{
+				typeStr = "DETAIL";
+				typeStrLen = 6;
 			}
 
 			bufSize += typeStrLen;
@@ -270,72 +581,12 @@ namespace sgrottel
 			FlushFileBuffers(m_file);
 		}
 
-	protected:
-
 		/// <summary>
 		/// Mutex used to thread-lock all output
 		/// </summary>
 		mutable std::mutex m_threadLock;
 
 	public:
-
-#if 1 /* REGION: region static short-hand function and variant functions */
-
-		template<typename CHARTYPE>
-		static void Write(ISimpleLog& log, CHARTYPE const* message) { log.Write(0, message, -1); }
-		template<typename STRINGTYPE>
-		static void Write(ISimpleLog& log, STRINGTYPE const& message) { log.Write(0, message.c_str(), -1); }
-		template<typename CHARTYPE, typename ...PARAMS>
-		static void Write(ISimpleLog& log, CHARTYPE const* format, PARAMS&&... params) { log.Write(0, formatString(format, std::forward<PARAMS>(params)...).c_str(), -1); }
-		template<typename STRINGTYPE, typename ...PARAMS>
-		static void Write(ISimpleLog& log, STRINGTYPE const& format, PARAMS&&... params) { log.Write(0, formatString(format.c_str(), std::forward<PARAMS>(params)...).c_str(), -1); }
-
-		template<typename CHARTYPE>
-		static void Write(ISimpleLog* log, CHARTYPE const* message) { if (log) log->Write(0, message, -1); }
-		template<typename STRINGTYPE>
-		static void Write(ISimpleLog* log, STRINGTYPE const& message) { if (log) log->Write(0, message.c_str(), -1); }
-		template<typename CHARTYPE, typename ...PARAMS>
-		static void Write(ISimpleLog* log, CHARTYPE const* format, PARAMS&&... params) { if (log) log->Write(0, formatString(format, std::forward<PARAMS>(params)...).c_str(), -1); }
-		template<typename STRINGTYPE, typename ...PARAMS>
-		static void Write(ISimpleLog* log, STRINGTYPE const& format, PARAMS&&... params) { if (log) log->Write(0, formatString(format.c_str(), std::forward<PARAMS>(params)...).c_str(), -1); }
-
-		template<typename CHARTYPE>
-		static void Warning(ISimpleLog& log, CHARTYPE const* message) { log.Write(FlagWarning, message, -1); }
-		template<typename STRINGTYPE>
-		static void Warning(ISimpleLog& log, STRINGTYPE const& message) { log.Write(FlagWarning, message.c_str(), -1); }
-		template<typename CHARTYPE, typename ...PARAMS>
-		static void Warning(ISimpleLog& log, CHARTYPE const* format, PARAMS&&... params) { log.Write(FlagWarning, formatString(format, std::forward<PARAMS>(params)...).c_str(), -1); }
-		template<typename STRINGTYPE, typename ...PARAMS>
-		static void Warning(ISimpleLog& log, STRINGTYPE const& format, PARAMS&&... params) { log.Write(FlagWarning, formatString(format.c_str(), std::forward<PARAMS>(params)...).c_str(), -1); }
-
-		template<typename CHARTYPE>
-		static void Warning(ISimpleLog* log, CHARTYPE const* message) { if (log) log->Write(FlagWarning, message, -1); }
-		template<typename STRINGTYPE>
-		static void Warning(ISimpleLog* log, STRINGTYPE const& message) { if (log) log->Write(FlagWarning, message.c_str(), -1); }
-		template<typename CHARTYPE, typename ...PARAMS>
-		static void Warning(ISimpleLog* log, CHARTYPE const* format, PARAMS&&... params) { if (log) log->Write(FlagWarning, formatString(format, std::forward<PARAMS>(params)...).c_str(), -1); }
-		template<typename STRINGTYPE, typename ...PARAMS>
-		static void Warning(ISimpleLog* log, STRINGTYPE const& format, PARAMS&&... params) { if (log) log->Write(FlagWarning, formatString(format.c_str(), std::forward<PARAMS>(params)...).c_str(), -1); }
-
-		template<typename CHARTYPE>
-		static void Error(ISimpleLog& log, CHARTYPE const* message) { log.Write(FlagError, message, -1); }
-		template<typename STRINGTYPE>
-		static void Error(ISimpleLog& log, STRINGTYPE const& message) { log.Write(FlagError, message.c_str(), -1); }
-		template<typename CHARTYPE, typename ...PARAMS>
-		static void Error(ISimpleLog& log, CHARTYPE const* format, PARAMS&&... params) { log.Write(FlagError, formatString(format, std::forward<PARAMS>(params)...).c_str(), -1); }
-		template<typename STRINGTYPE, typename ...PARAMS>
-		static void Error(ISimpleLog& log, STRINGTYPE const& format, PARAMS&&... params) { log.Write(FlagError, formatString(format.c_str(), std::forward<PARAMS>(params)...).c_str(), -1); }
-
-		template<typename CHARTYPE>
-		static void Error(ISimpleLog* log, CHARTYPE const* message) { if (log) log->Write(FlagError, message, -1); }
-		template<typename STRINGTYPE>
-		static void Error(ISimpleLog* log, STRINGTYPE const& message) { if (log) log->Write(FlagError, message.c_str(), -1); }
-		template<typename CHARTYPE, typename ...PARAMS>
-		static void Error(ISimpleLog* log, CHARTYPE const* format, PARAMS&&... params) { if (log) log->Write(FlagError, formatString(format, std::forward<PARAMS>(params)...).c_str(), -1); }
-		template<typename STRINGTYPE, typename ...PARAMS>
-		static void Error(ISimpleLog* log, STRINGTYPE const& format, PARAMS&&... params) { if (log) log->Write(FlagError, formatString(format.c_str(), std::forward<PARAMS>(params)...).c_str(), -1); }
-
-#endif
 
 #if 1 /* REGION: default configuration values */
 
@@ -671,29 +922,8 @@ namespace sgrottel
 			return std::filesystem::path{ strBuf.data(), strBuf.data() + rv };
 		}
 
+	protected:
 #if 1 /* REGION: implementation of ISampleLog */
-
-		/// <summary>
-		/// Write a message to the log
-		/// </summary>
-		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
-		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
-		/// If set less than zero, the message string is treated being zero terminated.</param>
-		virtual void Write(char const* message, int messageLength = -1) override
-		{
-			Write(0u, message, messageLength);
-		}
-
-		/// <summary>
-		/// Write a message to the log
-		/// </summary>
-		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
-		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
-		/// If set less than zero, the message string is treated being zero terminated.</param>
-		virtual void Write(wchar_t const* message, int messageLength = -1) override
-		{
-			Write(0u, message, messageLength);
-		}
 
 		/// <summary>
 		/// Write a message to the log
@@ -702,18 +932,13 @@ namespace sgrottel
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
 		/// If set less than zero, the message string is treated being zero terminated.</param>
-		virtual void Write(uint32_t flags, char const* message, int messageLength = -1) override
+		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) override
 		{
 			std::lock_guard<std::mutex> lock{m_threadLock};
 			if (m_file == INVALID_HANDLE_VALUE) return;
 
 			const char* utf8Str = nullptr;
 			size_t utf8StrLen = 0;
-
-			if (messageLength < 0)
-			{
-				messageLength = static_cast<int>(strlen(message));
-			}
 
 			toUtf8UnderLock(utf8Str, utf8StrLen, message, messageLength);
 
@@ -727,18 +952,13 @@ namespace sgrottel
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
 		/// If set less than zero, the message string is treated being zero terminated.</param>
-		virtual void Write(uint32_t flags, wchar_t const* message, int messageLength = -1) override
+		void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) override
 		{
 			std::lock_guard<std::mutex> lock{m_threadLock};
 			if (m_file == INVALID_HANDLE_VALUE) return;
 
 			const char* utf8Str = nullptr;
 			size_t utf8StrLen = 0;
-
-			if (messageLength < 0)
-			{
-				messageLength = static_cast<int>(wcslen(message));
-			}
 
 			toUtf8UnderLock(utf8Str, utf8StrLen, message, messageLength);
 
@@ -751,37 +971,53 @@ namespace sgrottel
 	/// <summary>
 	/// Extention to SimpleLog which, which echoes all messages to the console
 	/// </summary>
-	class EchoingSimpleLog : public SimpleLog
+	class EchoingSimpleLog : public ISimpleLog
 	{
 	private:
 		/// <summary>
 		/// Implementation to check if this console output should use colors
 		/// </summary>
 		/// <returns>True if this console output should use colors</returns>
-		bool EvalCanUseConsoleColors()
+		static bool EvalCanUseConsoleColors()
 		{
-			HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-			if (hStdOut == INVALID_HANDLE_VALUE)
+			static bool doEval = true;
+			static bool evalResult = true;
+
+			if (doEval)
 			{
-				return false;
+				doEval = false;
+				HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+				if (hStdOut == INVALID_HANDLE_VALUE)
+				{
+					evalResult = false;
+					return false;
+				}
+				DWORD mode = 0;
+				if (!GetConsoleMode(hStdOut, &mode))
+				{
+					evalResult = false;
+					return false;
+				}
+				evalResult = (mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) == ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 			}
-			DWORD mode = 0;
-			if (!GetConsoleMode(hStdOut, &mode))
-			{
-				return false;
-			}
-			return (mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) == ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+
+			return evalResult;
 		}
 
+		bool m_useStdErr = false;
+		bool m_useColors = EvalCanUseConsoleColors();
+		bool m_echoCriticals = true;
+		bool m_echoErrors = true;
+		bool m_echoWarnings = true;
+		bool m_echoMessages = true;
+		bool m_echoDetails = true;
+
+		ISimpleLog& m_baseLog;
+
 		/// <summary>
-		/// Checks if this console output should use colors
+		/// Mutex used to thread-lock all output
 		/// </summary>
-		/// <returns>True if this console output should use colors</returns>
-		bool UseConsoleColors()
-		{
-			static bool useColors = EvalCanUseConsoleColors();
-			return useColors;
-		}
+		mutable std::mutex m_threadLock;
 
 	public:
 
@@ -793,18 +1029,81 @@ namespace sgrottel
 		/// <summary>
 		/// Creates a EchoingSimpleLog with default values for directory, name, and retention
 		/// </summary>
-		EchoingSimpleLog() : SimpleLog() {}
-
-		/// <summary>
-		/// Creates a EchoingSimpleLog instance.
-		/// </summary>
-		/// <param name="directory">The directory where log files are stored</param>
-		/// <param name="name">The name for log files of this process</param>
-		/// <param name="retention">The default log file retention count; must be 2 or larger</param>
-		template<typename DIRECTORYT, typename NAMET>
-		EchoingSimpleLog(DIRECTORYT const& directory, NAMET const& name, int retention) : SimpleLog(directory, name, retention) { }
+		EchoingSimpleLog(ISimpleLog& baseLog) : m_baseLog{ baseLog } {}
 
 		virtual ~EchoingSimpleLog() = default;
+
+		/// <summary>
+		/// Gets the flag whether or not to use stderr for critical, error, and warning messages.
+		/// </summary>
+		inline bool GetUseStdErr() const noexcept { return m_useStdErr; }
+
+		/// <summary>
+		/// Sets the flag whether or not to use stderr for critical, error, and warning messages.
+		/// </summary>
+		inline void SetUseStdErr(bool useStdErr) noexcept { m_useStdErr = useStdErr; }
+
+		/// <summary>
+		/// Gets the flag whether or not to output colored text if supported.
+		/// </summary>
+		inline bool GetUseColors() const noexcept { return m_useColors; }
+
+		/// <summary>
+		/// Sets the flag whether or not to output colored text if supported.
+		/// </summary>
+		inline void SetUseColors(bool useColors) noexcept { m_useColors = useColors && EvalCanUseConsoleColors(); }
+
+		/// <summary>
+		/// Gets the flag whether or not to echo critical error messages
+		/// </summary>
+		inline bool GetEchoCriticals() const noexcept { return m_echoCriticals; }
+
+		/// <summary>
+		/// Sets the flag whether or not to echo critical error messages
+		/// </summary>
+		inline void SetEchoCriticals(bool echoCriticals) noexcept { m_echoCriticals = echoCriticals; }
+
+		/// <summary>
+		/// Gets the flag whether or not to echo error messages
+		/// </summary>
+		inline bool GetEchoErrors() const noexcept { return m_echoErrors; }
+
+		/// <summary>
+		/// Sets the flag whether or not to echo error messages
+		/// </summary>
+		inline void SetEchoErrors(bool echoErrors) noexcept { m_echoErrors = echoErrors; }
+
+		/// <summary>
+		/// Gets the flag whether or not to echo warning messages
+		/// </summary>
+		inline bool GetEchoWarnings() const noexcept { return m_echoWarnings; }
+
+		/// <summary>
+		/// Sets the flag whether or not to echo warning messages
+		/// </summary>
+		inline void SetEchoWarnings(bool echoWarnings) noexcept { m_echoWarnings = echoWarnings; }
+
+		/// <summary>
+		/// Gets the flag whether or not to echo messages
+		/// </summary>
+		inline bool GetEchoMessages() const noexcept { return m_echoMessages; }
+
+		/// <summary>
+		/// Sets the flag whether or not to echo messages
+		/// </summary>
+		inline void SetEchoMessages(bool echoMessages) noexcept { m_echoMessages = echoMessages; }
+
+		/// <summary>
+		/// Gets the flag whether or not to echo detail messages
+		/// </summary>
+		inline bool GetEchoDetails() const noexcept { return m_echoDetails; }
+
+		/// <summary>
+		/// Sets the flag whether or not to echo detail messages
+		/// </summary>
+		inline void SetEchoDetails(bool echoDetails) noexcept { m_echoDetails = echoDetails; }
+
+	protected:
 
 		/// <summary>
 		/// Write a message to the log
@@ -813,34 +1112,48 @@ namespace sgrottel
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
 		/// If set less than zero, the message string is treated being zero terminated.</param>
-		virtual void Write(uint32_t flags, char const* message, int messageLength = -1) override
+		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) override
 		{
-			SimpleLog::Write(flags, message, messageLength);
-			if ((flags & FlagDontEcho) != FlagDontEcho)
+			ForwardWriteImpl(m_baseLog, flags, message, messageLength);
+			if ((flags & FlagDontEcho) == FlagDontEcho) return;
+			uint32_t level = flags & FlagLevelMask;
+			if (level == FlagLevelCritial && !m_echoCriticals) return;
+			if (level == FlagLevelError && !m_echoErrors) return;
+			if (level == FlagLevelWarning && !m_echoWarnings) return;
+			if (level == FlagLevelMessage && !m_echoMessages) return;
+			if (level == FlagLevelDetail && !m_echoDetails) return;
+
 			{
 				std::lock_guard<std::mutex> lock{m_threadLock};
-				bool color = false;
-				if ((flags & FlagError) == FlagError)
+				bool colorSet = false;
+				if (level == FlagLevelCritial && m_useColors)
 				{
-					if (UseConsoleColors())
-					{
-						printf("\x1b[40m\x1b[91m");
-						color = true;
-					}
+					printf("\x1b[41m\x1b[97m");
+					colorSet = true;
 				}
-				else if ((flags & FlagWarning) == FlagWarning)
+				else if (level == FlagLevelError && m_useColors)
 				{
-					if (UseConsoleColors())
-					{
-						printf("\x1b[40m\x1b[93m");
-						color = true;
-					}
+					printf("\x1b[40m\x1b[91m");
+					colorSet = true;
 				}
-				if (messageLength < 0)
-					printf("%s\n", message);
-				else
-					printf("%.*s\n", messageLength, message);
-				if (color)
+				else if (level == FlagLevelWarning && m_useColors)
+				{
+					printf("\x1b[40m\x1b[93m");
+					colorSet = true;
+				}
+				else if (level == FlagLevelDetail && m_useColors)
+				{
+					printf("\x1b[40m\x1b[90m");
+					colorSet = true;
+				}
+
+				fprintf(
+					m_useStdErr && (level == FlagLevelCritial || level == FlagLevelError || level == FlagLevelWarning)
+					? stderr
+					: stdout,
+					"%.*s\n", static_cast<int>(messageLength), message);
+
+				if (colorSet)
 				{
 					printf("\x1b[0m");
 				}
@@ -854,42 +1167,54 @@ namespace sgrottel
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
 		/// If set less than zero, the message string is treated being zero terminated.</param>
-		virtual void Write(uint32_t flags, wchar_t const* message, int messageLength = -1) override
+		void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) override
 		{
-			SimpleLog::Write(flags, message, messageLength);
-			if ((flags & FlagDontEcho) != FlagDontEcho)
+			ForwardWriteImpl(m_baseLog, flags, message, messageLength);
+			if ((flags & FlagDontEcho) == FlagDontEcho) return;
+			uint32_t level = flags & FlagLevelMask;
+			if (level == FlagLevelCritial && !m_echoCriticals) return;
+			if (level == FlagLevelError && !m_echoErrors) return;
+			if (level == FlagLevelWarning && !m_echoWarnings) return;
+			if (level == FlagLevelMessage && !m_echoMessages) return;
+			if (level == FlagLevelDetail && !m_echoDetails) return;
+
 			{
 				std::lock_guard<std::mutex> lock{m_threadLock};
-				bool color = false;
-				if ((flags & FlagError) == FlagError)
+				bool colorSet = false;
+				if (level == FlagLevelCritial && m_useColors)
 				{
-					if (UseConsoleColors())
-					{
-						wprintf(L"\x1b[40m\x1b[91m");
-						color = true;
-					}
+					wprintf(L"\x1b[41m\x1b[97m");
+					colorSet = true;
 				}
-				else if ((flags & FlagWarning) == FlagWarning)
+				else if (level == FlagLevelError && m_useColors)
 				{
-					if (UseConsoleColors())
-					{
-						wprintf(L"\x1b[40m\x1b[93m");
-						color = true;
-					}
+					wprintf(L"\x1b[40m\x1b[91m");
+					colorSet = true;
 				}
-				if (messageLength < 0)
-					wprintf(L"%s\n", message);
-				else
-					wprintf(L"%.*s\n", messageLength, message);
-				if (color)
+				else if (level == FlagLevelWarning && m_useColors)
+				{
+					wprintf(L"\x1b[40m\x1b[93m");
+					colorSet = true;
+				}
+				else if (level == FlagLevelDetail && m_useColors)
+				{
+					wprintf(L"\x1b[40m\x1b[90m");
+					colorSet = true;
+				}
+
+				fwprintf(
+					m_useStdErr && (level == FlagLevelCritial || level == FlagLevelError || level == FlagLevelWarning)
+					? stderr
+					: stdout,
+					L"%.*s\n", static_cast<int>(messageLength), message);
+
+				if (colorSet)
 				{
 					wprintf(L"\x1b[0m");
 				}
 			}
 		}
 
-		// additional overloads of `Write` in varallel to the two overrides
-		using SimpleLog::Write;
 	};
 }
 

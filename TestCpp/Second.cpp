@@ -1,6 +1,6 @@
 // Second.cpp  SimpleLog  TestCpp
 //
-// Copyright 2022-2024 SGrottel (www.sgrottel.de)
+// Copyright 2022-2025 SGrottel (www.sgrottel.de)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,5 +20,5 @@
 
 void PrintMessage(sgrottel::ISimpleLog& log, std::wstring const& msg)
 {
-	log.Write(0, msg.c_str());
+	log.Write(msg);
 }
