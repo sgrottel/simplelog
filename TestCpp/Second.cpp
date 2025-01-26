@@ -20,5 +20,5 @@
 
 void PrintMessage(sgrottel::ISimpleLog& log, std::wstring const& msg)
 {
-	log.Write(0, msg);
+	log.Write(msg);
 }

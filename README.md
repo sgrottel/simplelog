@@ -41,6 +41,27 @@ You might need to adjust your project configurations for a matching include sear
 🚧 TODO
 
 
+### Note on Char-Array-Pointer Strings + Length
+Sometimes, especially in the context of de-/serialization strings might be represented by a pointer to char arrays and a length.
+In these cases, the strings in the char array might be explicitly **not zero-terminated**.
+
+This is **not supported** by this library.
+Consider using a `string_view` wrapper in those cases:
+```cpp
+const char* str = ...;
+size_t len = ...;
+log.Write(0, std::string_view{str, len});
+```
+
+Note: if you combine such `string_view` input with log function variants that support argument formatting,
+and additional copy of the input string has to be created (using `std::string`) to ensure the input is zero-terminated.
+
+### Note on Formatting via String Streams
+To use string-based formatting, you can utilize `stringstream` objects:
+```cpp
+log.Write(0, (std::stringstream{} << "Value: " << v).str());
+```
+
 ## License
 This project is freely available as open source under the terms of the [Apache License, Version 2.0](LICENSE)
 

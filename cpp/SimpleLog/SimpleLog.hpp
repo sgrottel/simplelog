@@ -204,6 +204,275 @@ namespace sgrottel
 			this->Write(flags, formatString(message.c_str(), std::forward<PARAM1>(p1), std::forward<PARAMS>(params)...));
 		}
 
+		template<typename ...PARAMS>
+		inline void Write(char const* message, PARAMS&&... params)
+		{
+			this->Write(static_cast<uint32_t>(0), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Write(wchar_t const* message, PARAMS&&... params)
+		{
+			this->Write(static_cast<uint32_t>(0), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ...PARAMS>
+		inline void Write(std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		{
+			this->Write(static_cast<uint32_t>(0), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
+		inline void Write(std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		{
+			this->Write(static_cast<uint32_t>(0), message, std::forward<PARAMS>(params)...);
+		}
+
+
+		template<typename ...PARAMS>
+		inline void Critical(uint32_t flags, char const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelCritial | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Critical(uint32_t flags, wchar_t const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelCritial | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ...PARAMS>
+		inline void Critical(uint32_t flags, std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelCritial | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
+		inline void Critical(uint32_t flags, std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelCritial | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Critical(char const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelCritial, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Critical(wchar_t const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelCritial, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ...PARAMS>
+		inline void Critical(std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelCritial, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
+		inline void Critical(std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelCritial, message, std::forward<PARAMS>(params)...);
+		}
+
+
+		template<typename ...PARAMS>
+		inline void Error(uint32_t flags, char const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelError | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Error(uint32_t flags, wchar_t const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelError | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ...PARAMS>
+		inline void Error(uint32_t flags, std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelError | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
+		inline void Error(uint32_t flags, std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelError | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Error(char const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelError, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Error(wchar_t const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelError, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ...PARAMS>
+		inline void Error(std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelError, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
+		inline void Error(std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelError, message, std::forward<PARAMS>(params)...);
+		}
+
+
+		template<typename ...PARAMS>
+		inline void Warning(uint32_t flags, char const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelWarning | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Warning(uint32_t flags, wchar_t const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelWarning | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ...PARAMS>
+		inline void Warning(uint32_t flags, std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelWarning | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
+		inline void Warning(uint32_t flags, std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelWarning | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Warning(char const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelWarning, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Warning(wchar_t const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelWarning, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ...PARAMS>
+		inline void Warning(std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelWarning, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
+		inline void Warning(std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelWarning, message, std::forward<PARAMS>(params)...);
+		}
+
+
+		template<typename ...PARAMS>
+		inline void Message(uint32_t flags, char const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelMessage | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Message(uint32_t flags, wchar_t const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelMessage | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ...PARAMS>
+		inline void Message(uint32_t flags, std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelMessage | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
+		inline void Message(uint32_t flags, std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelMessage | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Message(char const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelMessage, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Message(wchar_t const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelMessage, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ...PARAMS>
+		inline void Message(std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelMessage, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
+		inline void Message(std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelMessage, message, std::forward<PARAMS>(params)...);
+		}
+
+
+		template<typename ...PARAMS>
+		inline void Detail(uint32_t flags, char const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelDetail | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Detail(uint32_t flags, wchar_t const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelDetail | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ...PARAMS>
+		inline void Detail(uint32_t flags, std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelDetail | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
+		inline void Detail(uint32_t flags, std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelDetail | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Detail(char const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelDetail, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename ...PARAMS>
+		inline void Detail(wchar_t const* message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelDetail, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ...PARAMS>
+		inline void Detail(std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelDetail, message, std::forward<PARAMS>(params)...);
+		}
+
+		template<typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
+		inline void Detail(std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		{
+			this->Write(ISimpleLog::FlagLevelDetail, message, std::forward<PARAMS>(params)...);
+		}
+
 		///// <summary>
 		///// Write a message to the log
 		///// </summary>
@@ -243,64 +512,6 @@ namespace sgrottel
 
 		//template<typename STRINGTYPE, typename ...PARAMS>
 		//inline void Write(uint32_t flags, STRINGTYPE const& format, PARAMS&&... params) { this->Write(flags, formatString(format.c_str(), std::forward<PARAMS>(params)...).c_str(), -1); }
-
-#if 1 /* REGION: region static short-hand function and variant functions */
-
-		//template<typename CHARTYPE>
-		//static void Write(ISimpleLog& log, CHARTYPE const* message) { log.Write(0, message, -1); }
-		//template<typename STRINGTYPE>
-		//static void Write(ISimpleLog& log, STRINGTYPE const& message) { log.Write(0, message.c_str(), -1); }
-		//template<typename CHARTYPE, typename ...PARAMS>
-		//static void Write(ISimpleLog& log, CHARTYPE const* format, PARAMS&&... params) { log.Write(0, formatString(format, std::forward<PARAMS>(params)...).c_str(), -1); }
-		//template<typename STRINGTYPE, typename ...PARAMS>
-		//static void Write(ISimpleLog& log, STRINGTYPE const& format, PARAMS&&... params) { log.Write(0, formatString(format.c_str(), std::forward<PARAMS>(params)...).c_str(), -1); }
-
-		//template<typename CHARTYPE>
-		//static void Write(ISimpleLog* log, CHARTYPE const* message) { if (log) log->Write(0, message, -1); }
-		//template<typename STRINGTYPE>
-		//static void Write(ISimpleLog* log, STRINGTYPE const& message) { if (log) log->Write(0, message.c_str(), -1); }
-		//template<typename CHARTYPE, typename ...PARAMS>
-		//static void Write(ISimpleLog* log, CHARTYPE const* format, PARAMS&&... params) { if (log) log->Write(0, formatString(format, std::forward<PARAMS>(params)...).c_str(), -1); }
-		//template<typename STRINGTYPE, typename ...PARAMS>
-		//static void Write(ISimpleLog* log, STRINGTYPE const& format, PARAMS&&... params) { if (log) log->Write(0, formatString(format.c_str(), std::forward<PARAMS>(params)...).c_str(), -1); }
-
-		//template<typename CHARTYPE>
-		//static void Warning(ISimpleLog& log, CHARTYPE const* message) { log.Write(FlagWarning, message, -1); }
-		//template<typename STRINGTYPE>
-		//static void Warning(ISimpleLog& log, STRINGTYPE const& message) { log.Write(FlagWarning, message.c_str(), -1); }
-		//template<typename CHARTYPE, typename ...PARAMS>
-		//static void Warning(ISimpleLog& log, CHARTYPE const* format, PARAMS&&... params) { log.Write(FlagWarning, formatString(format, std::forward<PARAMS>(params)...).c_str(), -1); }
-		//template<typename STRINGTYPE, typename ...PARAMS>
-		//static void Warning(ISimpleLog& log, STRINGTYPE const& format, PARAMS&&... params) { log.Write(FlagWarning, formatString(format.c_str(), std::forward<PARAMS>(params)...).c_str(), -1); }
-
-		//template<typename CHARTYPE>
-		//static void Warning(ISimpleLog* log, CHARTYPE const* message) { if (log) log->Write(FlagWarning, message, -1); }
-		//template<typename STRINGTYPE>
-		//static void Warning(ISimpleLog* log, STRINGTYPE const& message) { if (log) log->Write(FlagWarning, message.c_str(), -1); }
-		//template<typename CHARTYPE, typename ...PARAMS>
-		//static void Warning(ISimpleLog* log, CHARTYPE const* format, PARAMS&&... params) { if (log) log->Write(FlagWarning, formatString(format, std::forward<PARAMS>(params)...).c_str(), -1); }
-		//template<typename STRINGTYPE, typename ...PARAMS>
-		//static void Warning(ISimpleLog* log, STRINGTYPE const& format, PARAMS&&... params) { if (log) log->Write(FlagWarning, formatString(format.c_str(), std::forward<PARAMS>(params)...).c_str(), -1); }
-
-		//template<typename CHARTYPE>
-		//static void Error(ISimpleLog& log, CHARTYPE const* message) { log.Write(FlagError, message, -1); }
-		//template<typename STRINGTYPE>
-		//static void Error(ISimpleLog& log, STRINGTYPE const& message) { log.Write(FlagError, message.c_str(), -1); }
-		//template<typename CHARTYPE, typename ...PARAMS>
-		//static void Error(ISimpleLog& log, CHARTYPE const* format, PARAMS&&... params) { log.Write(FlagError, formatString(format, std::forward<PARAMS>(params)...).c_str(), -1); }
-		//template<typename STRINGTYPE, typename ...PARAMS>
-		//static void Error(ISimpleLog& log, STRINGTYPE const& format, PARAMS&&... params) { log.Write(FlagError, formatString(format.c_str(), std::forward<PARAMS>(params)...).c_str(), -1); }
-
-		//template<typename CHARTYPE>
-		//static void Error(ISimpleLog* log, CHARTYPE const* message) { if (log) log->Write(FlagError, message, -1); }
-		//template<typename STRINGTYPE>
-		//static void Error(ISimpleLog* log, STRINGTYPE const& message) { if (log) log->Write(FlagError, message.c_str(), -1); }
-		//template<typename CHARTYPE, typename ...PARAMS>
-		//static void Error(ISimpleLog* log, CHARTYPE const* format, PARAMS&&... params) { if (log) log->Write(FlagError, formatString(format, std::forward<PARAMS>(params)...).c_str(), -1); }
-		//template<typename STRINGTYPE, typename ...PARAMS>
-		//static void Error(ISimpleLog* log, STRINGTYPE const& format, PARAMS&&... params) { if (log) log->Write(FlagError, formatString(format.c_str(), std::forward<PARAMS>(params)...).c_str(), -1); }
-
-#endif
 
 	protected:
 		virtual ~ISimpleLog() = default;
@@ -838,11 +1049,6 @@ namespace sgrottel
 			const char* utf8Str = nullptr;
 			size_t utf8StrLen = 0;
 
-			//if (messageLength < 0)
-			//{
-			//	messageLength = static_cast<int>(strlen(message));
-			//}
-
 			toUtf8UnderLock(utf8Str, utf8StrLen, message, messageLength);
 
 			writeImplUnderLock(flags, utf8Str, utf8StrLen);
@@ -862,11 +1068,6 @@ namespace sgrottel
 
 			const char* utf8Str = nullptr;
 			size_t utf8StrLen = 0;
-
-			//if (messageLength < 0)
-			//{
-			//	messageLength = static_cast<int>(wcslen(message));
-			//}
 
 			toUtf8UnderLock(utf8Str, utf8StrLen, message, messageLength);
 

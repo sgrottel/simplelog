@@ -36,10 +36,10 @@ int wmain(int argc, wchar_t const* argv[])
 
 	wchar_t filenameBuf[MAX_PATH + 1];
 	DWORD filenameLen = GetModuleFileNameW(nullptr, filenameBuf, MAX_PATH);
-	std::filesystem::path exename{filenameBuf, filenameBuf + filenameLen};
+	std::filesystem::path exename{ filenameBuf, filenameBuf + filenameLen };
 
 	std::filesystem::path logDir = exename.parent_path() / "log";
-	
+
 	sgrottel::SimpleLog logFile{ logDir.generic_wstring(), "TestSimpleLog", 4 };
 	sgrottel::EchoingSimpleLog log{ logFile };
 
@@ -55,9 +55,9 @@ int wmain(int argc, wchar_t const* argv[])
 		<< ":" << std::setfill('0') << std::setw(2) << now.tm_sec << "Z";
 	log.Write(sgrottel::EchoingSimpleLog::FlagDontEcho, startMsg.str().c_str());
 
-	log.Write(ISimpleLog::FlagLevelDetail, L"Default Directory: %s", sgrottel::SimpleLog::GetDefaultDirectory().generic_wstring().c_str());
+	log.Detail(L"Default Directory: %s", sgrottel::SimpleLog::GetDefaultDirectory().generic_wstring().c_str());
 	log.Write(ISimpleLog::FlagLevelDetail, "Default Name: %s", sgrottel::SimpleLog::GetDefaultName().generic_string().c_str());
-	log.Write(ISimpleLog::FlagLevelDetail, L"Default Retention: %d", sgrottel::SimpleLog::GetDefaultRetention());
+	log.Detail((std::wstringstream{} << L"Default Retention: " << sgrottel::SimpleLog::GetDefaultRetention()).str());
 
 	if (waitForSemaphore)
 	{
@@ -78,7 +78,7 @@ int wmain(int argc, wchar_t const* argv[])
 				{
 					std::cout << std::endl;
 					std::cerr << "FAILED TO WAIT: " << waited << std::endl;
-					log.Write(ISimpleLog::FlagLevelError, "FAILED TO WAIT: %d", static_cast<int>(waited));
+					log.Error("FAILED TO WAIT: %d", static_cast<int>(waited));
 					return 1;
 				}
 				else
@@ -91,16 +91,16 @@ int wmain(int argc, wchar_t const* argv[])
 	}
 
 	PrintMessage(log, L"And now for something completely different:");
-	log.Write(ISimpleLog::FlagLevelCritial, "A Critical"sv.data());
-	log.Write(ISimpleLog::FlagLevelError, "An Error");
-	log.Write(ISimpleLog::FlagLevelWarning, L"A Warning");
-	log.Write(0, std::string{"And a hidden Message"}.c_str());
+	log.Critical("A Critical"sv);
+	log.Error("An Error");
+	log.Warning(L"A Warning");
+	log.Message(sgrottel::EchoingSimpleLog::FlagDontEcho | ISimpleLog::FlagLevelError, std::string{"And a hidden Message"});
 
-	log.Write(ISimpleLog::FlagLevelDetail, "Formatting away: %s %S %s %s %S"sv, "The", L"quick", "Fox", "doesn't", L"care!");
+	log.Detail("Formatting away: %s %S %s %s %S"sv, "The", L"quick", "Fox", "doesn't", L"care!");
 
-	log.Write(0, L"Arg: %s", (argc > 1) ? argv[1] : L"none");
+	log.Write(L"Arg: %s", (argc > 1) ? argv[1] : L"none");
 
-	log.Write(0, std::string_view{ "Done.XYZ", 5 });
+	log.Message(std::string_view{ "Done.XYZ", 5 });
 
 	return 0;
 }
