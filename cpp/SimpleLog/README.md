@@ -1,5 +1,5 @@
 # SGrottel SimpleLog™ for Cpp
-Version: 2.2.0
+Version: 3.0.0
 
 A very simple log files implementation.
 Logs strings with time stamps into log files and implements log file retention.
@@ -11,7 +11,7 @@ There are two ways to add SimpleLog™ to your Cpp project:
 
 1. Copy and add the subdirectory [./cpp/SimpleLog](./cpp/SimpleLog) to your project.
    While it is sufficient to only add the file [./cpp/SimpleLog/SimpleLog.hpp](./cpp/SimpleLog/SimpleLog.hpp) to your project, it is recommended to add the whole subdirectory with all files.
-2. 🚧 TODO: Nuget Package
+2. Add the nuget package [SGrottel.SimpleLog.Cpp](https://www.nuget.org/packages/SGrottel.SimpleLog.Cpp/) to your project
 
 After integration, you should be able to include the header file via:
 ```cpp
@@ -27,7 +27,7 @@ You might need to adjust your project configurations for a matching include sear
 ## License
 This project is freely available as open source under the terms of the [Apache License, Version 2.0](LICENSE)
 
-> Copyright 2022-2024 SGrottel (www.sgrottel.de)
+> Copyright 2022-2025 SGrottel (www.sgrottel.de)
 >
 > Licensed under the Apache License, Version 2.0 (the "License");
 > you may not use this file except in compliance with the License.

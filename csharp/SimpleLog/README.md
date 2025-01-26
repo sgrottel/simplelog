@@ -1,5 +1,5 @@
 # SGrottel SimpleLog™ for CSharp
-Version: 2.4.1
+Version: 3.0.0
 
 A very simple log files implementation.
 Logs strings with time stamps into log files and implements log file retention.
@@ -12,7 +12,7 @@ There are two ways to add SimpleLog™ to your CSharp project:
 1. Copy and add the subdirectory [./csharp/SimpleLog](./csharp/SimpleLog) to your project.
    While it is sufficient to only add the file [./csharp/SimpleLog/SimpleLog.cs](./csharp/SimpleLog/SimpleLog.cs) to your project, it is recommended to add the whole subdirectory with all files.
    Make sure that `SimpleLog.cs` is compiled as part of your project.
-2. 🚧 TODO: Nuget Package
+2. Add the nuget package [SGrottel.SimpleLog.CSharp](https://www.nuget.org/packages/SGrottel.SimpleLog.CSharp/) to your project
 
 
 ## CSharp Usage Example
@@ -22,7 +22,7 @@ There are two ways to add SimpleLog™ to your CSharp project:
 ## License
 This project is freely available as open source under the terms of the [Apache License, Version 2.0](LICENSE)
 
-> Copyright 2022-2024 SGrottel (www.sgrottel.de)
+> Copyright 2022-2025 SGrottel (www.sgrottel.de)
 >
 > Licensed under the Apache License, Version 2.0 (the "License");
 > you may not use this file except in compliance with the License.
