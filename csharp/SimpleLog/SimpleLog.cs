@@ -1,7 +1,7 @@
 // SimpleLog.cs
-// Version: 2.4.1
+// Version: 3.0.0
 //
-// Copyright 2022-2024 SGrottel (www.sgrottel.de)
+// Copyright 2022-2025 SGrottel (www.sgrottel.de)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,14 +33,54 @@ namespace SGrottel
 	public interface ISimpleLog
 	{
 		/// <summary>
-		/// Flag message as warning
+		/// Major version number constant
 		/// </summary>
-		const uint FlagWarning = 0x00000001;
+		const int VERSION_MAJOR = 3;
+
+		/// <summary>
+		/// Minor version number constant
+		/// </summary>
+		const int VERSION_MINOR = 0;
+
+		/// <summary>
+		/// Patch version number constant
+		/// </summary>
+		const int VERSION_PATCH = 0;
+
+		/// <summary>
+		/// Build version number constant
+		/// </summary>
+		const int VERSION_BUILD = 0;
+
+		/// <summary>
+		/// Flag message as critical error
+		/// </summary>
+		const uint FlagLevelCritial = 0x00000007;
 
 		/// <summary>
 		/// Flag message as error
 		/// </summary>
-		const uint FlagError = 0x00000002;
+		const uint FlagLevelError = 0x00000005;
+
+		/// <summary>
+		/// Flag message as warning
+		/// </summary>
+		const uint FlagLevelWarning = 0x0000003;
+
+		/// <summary>
+		/// Flag message as normal information message
+		/// </summary>
+		const uint FlagLevelMessage = 0x0000000;
+
+		/// <summary>
+		/// Flag message as detail information
+		/// </summary>
+		const uint FlagLevelDetail = 0x00000001;
+
+		/// <summary>
+		/// Masks the bits of the flags field which are used to specify the message level
+		/// </summary>
+		const uint FlagLevelMask = 0x00000007;
 
 		/// <summary>
 		/// Write a message to the log
@@ -57,45 +97,126 @@ namespace SGrottel
 	}
 
 	/// <summary>
+	/// Convenience extension methods to log messages with a specific level
+	/// </summary>
+	public static class ISimpleLogExt
+	{
+		/// <summary>
+		/// Writes a critical error message to the log
+		/// </summary>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public static void Critical(this ISimpleLog? Log, string message)
+		{
+			Log?.Write(ISimpleLog.FlagLevelCritial, message);
+		}
+
+		/// <summary>
+		/// Writes a critical error message to the log
+		/// </summary>
+		/// <param name="flags">The message flags. Level flag bits will be overwritten to FlagLevelCritical</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public static void Critical(this ISimpleLog? Log, uint flags, string message)
+		{
+			Log?.Write(ISimpleLog.FlagLevelCritial | (flags & ~ISimpleLog.FlagLevelMask), message);
+		}
+
+		/// <summary>
+		/// Writes a error message to the log
+		/// </summary>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public static void Error(this ISimpleLog? Log, string message)
+		{
+			Log?.Write(ISimpleLog.FlagLevelError, message);
+		}
+
+		/// <summary>
+		/// Writes a error message to the log
+		/// </summary>
+		/// <param name="flags">The message flags. Level flag bits will be overwritten to FlagLevelError</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public static void Error(this ISimpleLog? Log, uint flags, string message)
+		{
+			Log?.Write(ISimpleLog.FlagLevelError | (flags & ~ISimpleLog.FlagLevelMask), message);
+		}
+
+		/// <summary>
+		/// Writes a warning message to the log
+		/// </summary>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public static void Warning(this ISimpleLog? Log, string message)
+		{
+			Log?.Write(ISimpleLog.FlagLevelWarning, message);
+		}
+
+		/// <summary>
+		/// Writes a warning message to the log
+		/// </summary>
+		/// <param name="flags">The message flags. Level flag bits will be overwritten to FlagLevelWarning</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public static void Warning(this ISimpleLog? Log, uint flags, string message)
+		{
+			Log?.Write(ISimpleLog.FlagLevelWarning | (flags & ~ISimpleLog.FlagLevelMask), message);
+		}
+
+		/// <summary>
+		/// Writes a message to the log
+		/// </summary>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public static void Message(this ISimpleLog? Log, string message)
+		{
+			Log?.Write(ISimpleLog.FlagLevelMessage, message);
+		}
+
+		/// <summary>
+		/// Writes a message to the log
+		/// </summary>
+		/// <param name="flags">The message flags. Level flag bits will be overwritten to FlagLevelMessage</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public static void Message(this ISimpleLog? Log, uint flags, string message)
+		{
+			Log?.Write(ISimpleLog.FlagLevelMessage | (flags & ~ISimpleLog.FlagLevelMask), message);
+		}
+
+		/// <summary>
+		/// Writes a detail message to the log
+		/// </summary>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public static void Detail(this ISimpleLog? Log, string message)
+		{
+			Log?.Write(ISimpleLog.FlagLevelDetail, message);
+		}
+
+		/// <summary>
+		/// Writes a detail message to the log
+		/// </summary>
+		/// <param name="flags">The message flags. Level flag bits will be overwritten to FlagLevelDetail</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public static void Detail(this ISimpleLog? Log, uint flags, string message)
+		{
+			Log?.Write(ISimpleLog.FlagLevelDetail | (flags & ~ISimpleLog.FlagLevelMask), message);
+		}
+	}
+
+	/// <summary>
+	/// A null implementation of ISimpleLog
+	/// </summary>
+	public class NullLog : ISimpleLog
+	{
+		public void Write(string message)
+		{
+			// omitting all messages
+		}
+		public void Write(uint flags, string message)
+		{
+			// omitting all messages
+		}
+	};
+
+	/// <summary>
 	/// SimpleLog implementation
 	/// </summary>
 	public class SimpleLog : ISimpleLog
 	{
-		/// <summary>
-		/// Major version number constant
-		/// </summary>
-		public const int VERSION_MAJOR = 2;
-		/// <summary>
-		/// Minor version number constant
-		/// </summary>
-		public const int VERSION_MINOR = 4;
-		/// <summary>
-		/// Patch version number constant
-		/// </summary>
-		public const int VERSION_PATCH = 1;
-		/// <summary>
-		/// Build version number constant
-		/// </summary>
-		public const int VERSION_BUILD = 0;
-
-		#region Static Write Convenience Functions
-		static public void Write(ISimpleLog? log, string message) { log?.Write(message); }
-		static public void Write(ISimpleLog? log, string format, object? arg0) { log?.Write(string.Format(format, arg0)); }
-		static public void Write(ISimpleLog? log, string format, object? arg0, object? arg1) { log?.Write(string.Format(format, arg0, arg1)); }
-		static public void Write(ISimpleLog? log, string format, object? arg0, object? arg1, object? arg2) { log?.Write(string.Format(format, arg0, arg1, arg2)); }
-		static public void Write(ISimpleLog? log, string format, object?[] args) { log?.Write(string.Format(format, args)); }
-		static public void Warning(ISimpleLog? log, string message) { log?.Write(ISimpleLog.FlagWarning, message); }
-		static public void Warning(ISimpleLog? log, string format, object? arg0) { log?.Write(ISimpleLog.FlagWarning, string.Format(format, arg0)); }
-		static public void Warning(ISimpleLog? log, string format, object? arg0, object? arg1) { log?.Write(ISimpleLog.FlagWarning, string.Format(format, arg0, arg1)); }
-		static public void Warning(ISimpleLog? log, string format, object? arg0, object? arg1, object? arg2) { log?.Write(ISimpleLog.FlagWarning, string.Format(format, arg0, arg1, arg2)); }
-		static public void Warning(ISimpleLog? log, string format, object?[] args) { log?.Write(ISimpleLog.FlagWarning, string.Format(format, args)); }
-		static public void Error(ISimpleLog? log, string message) { log?.Write(ISimpleLog.FlagError, message); }
-		static public void Error(ISimpleLog? log, string format, object? arg0) { log?.Write(ISimpleLog.FlagError, string.Format(format, arg0)); }
-		static public void Error(ISimpleLog? log, string format, object? arg0, object? arg1) { log?.Write(ISimpleLog.FlagError, string.Format(format, arg0, arg1)); }
-		static public void Error(ISimpleLog? log, string format, object? arg0, object? arg1, object? arg2) { log?.Write(ISimpleLog.FlagError, string.Format(format, arg0, arg1, arg2)); }
-		static public void Error(ISimpleLog? log, string format, object?[] args) { log?.Write(ISimpleLog.FlagError, string.Format(format, args)); }
-		#endregion
-
 		#region Ctor
 
 		[DllImport("shell32.dll")]
@@ -332,7 +453,7 @@ namespace SGrottel
 		/// Write a message to the log
 		/// </summary>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
-		public virtual void Write(string message) { Write(0, message); }
+		public virtual void Write(string message) => Write(0, message);
 
 		/// <summary>
 		/// Write a message to the log
@@ -345,8 +466,13 @@ namespace SGrottel
 			{
 				if (writer == null) return;
 				string type = "";
-				if ((flags & ISimpleLog.FlagError) == ISimpleLog.FlagError) type = "ERROR";
-				else if ((flags & ISimpleLog.FlagWarning) == ISimpleLog.FlagWarning) type = "WARNING";
+				switch (flags & ISimpleLog.FlagLevelMask)
+				{
+					case ISimpleLog.FlagLevelCritial: type = "CRITICAL"; break;
+					case ISimpleLog.FlagLevelError: type = "ERROR"; break;
+					case ISimpleLog.FlagLevelWarning: type = "WARNING"; break;
+					case ISimpleLog.FlagLevelDetail: type = "DETAIL"; break;
+				}
 				writer.WriteLine("{0:u}|{2} {1}", DateTime.Now, message, type);
 				writer.Flush();
 			}
@@ -356,14 +482,14 @@ namespace SGrottel
 		/// <summary>
 		/// Object used to thread-lock all output
 		/// </summary>
-		protected object threadLock = new object();
+		private object threadLock = new object();
 
 	}
 
 	/// <summary>
 	/// Extention to SimpleLog which, which echoes all messages to the console
 	/// </summary>
-	public class EchoingSimpleLog : SimpleLog
+	public class EchoingSimpleLog : ISimpleLog
 	{
 
 		/// <summary>
@@ -371,71 +497,122 @@ namespace SGrottel
 		/// </summary>
 		public const uint FlagDontEcho = 0x00010000;
 
+		private ISimpleLog baseLog;
+
 		/// <summary>
 		/// Creates a EchoingSimpleLog with default values for directory, name, and retention
 		/// </summary>
-		public EchoingSimpleLog() : base() { }
+		public EchoingSimpleLog(ISimpleLog baseLog)
+		{
+			this.baseLog = baseLog;
+		}
 
 		/// <summary>
-		/// Creates a EchoingSimpleLog instance.
-		/// </summary>
-		/// <param name="directory">The directory where log files are stored</param>
-		/// <param name="name">The name for log files of this process</param>
-		/// <param name="retention">The default log file retention count</param>
-		public EchoingSimpleLog(string directory, string name, int retention) : base(directory, name, retention) { }
-
-		/// <summary>
-		/// If set to `true`, warning and error message will be echoed to `Console.Error`.
-		/// For normal messages or if this is set to `false` the messages will be echoed to `Console.Out`
+		/// If set to `true`, critical, error, and warning messages will be echoed to `Console.Error`.
+		/// For normal and detail messages or if this is set to `false` the messages will be echoed to `Console.Out`
 		/// </summary>
 		public bool UseErrorOut { get; set; } = true;
 
 		/// <summary>
-		/// If set to `true`, warnings will be printed as yellow on black and errors will be printed as red on black.
+		/// If set to `true`,
+		/// critical messages will be printed in whit on red,
+		/// error messages will be printed in red on black,
+		/// warnings will be printed as yellow on black, and
+		/// details will be printe as dark gray on black.
 		/// </summary>
 		public bool UseColor { get; set; } = true;
 
 		/// <summary>
-		/// Write a message to the log and echoes the message to the console.
+		/// If set to `false` no critical messages will be echoed
 		/// </summary>
-		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
-		public override void Write(string message) { Write(0, message); }
+		public bool EchoCriticals { get; set; } = true;
 
 		/// <summary>
-		/// Write a message to the log and echoes the message to the console.
+		/// If set to `false` no error messages will be echoed
 		/// </summary>
-		/// <param name="flags">The optional message flags</param>
+		public bool EchoErrors { get; set; } = true;
+
+		/// <summary>
+		/// If set to `false` no warning messages will be echoed
+		/// </summary>
+		public bool EchoWarnings { get; set; } = true;
+
+		/// <summary>
+		/// If set to `false` no normal-leveled messages will be echoed
+		/// </summary>
+		public bool EchoMessages { get; set; } = true;
+
+		/// <summary>
+		/// If set to `false` no detail messages will be echoed
+		/// </summary>
+		public bool EchoDetails { get; set; } = true;
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
-		public override void Write(uint flags, string message)
+		public void Write(string message) => Write(0, message);
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public void Write(uint flags, string message)
 		{
-			base.Write(flags, message);
-			if ((flags & FlagDontEcho) != FlagDontEcho)
+			baseLog.Write(flags, message);
+			if ((flags & FlagDontEcho) == FlagDontEcho) return;
+			uint level = flags & ISimpleLog.FlagLevelMask;
+			if (level == ISimpleLog.FlagLevelCritial && !EchoCriticals) return;
+			if (level == ISimpleLog.FlagLevelError && !EchoErrors) return;
+			if (level == ISimpleLog.FlagLevelWarning && !EchoWarnings) return;
+			if (level == ISimpleLog.FlagLevelMessage  && !EchoMessages) return;
+			if (level == ISimpleLog.FlagLevelDetail && !EchoDetails) return;
+
+			lock (threadLock)
 			{
-				lock (threadLock)
+				bool colorSet = false;
+				if (UseColor)
 				{
-					bool isError = (flags & ISimpleLog.FlagError) == ISimpleLog.FlagError;
-					bool isWarning = (flags & ISimpleLog.FlagWarning) == ISimpleLog.FlagWarning;
-
-					if (UseColor && isError)
+					switch (level)
 					{
-						Console.BackgroundColor = ConsoleColor.Black;
-						Console.ForegroundColor = ConsoleColor.Red;
+						case ISimpleLog.FlagLevelCritial:
+							Console.ForegroundColor = ConsoleColor.White;
+							Console.BackgroundColor = ConsoleColor.Red;
+							colorSet = true;
+							break;
+						case ISimpleLog.FlagLevelError:
+							Console.ForegroundColor = ConsoleColor.Red;
+							Console.BackgroundColor = ConsoleColor.Black;
+							colorSet = true;
+							break;
+						case ISimpleLog.FlagLevelWarning:
+							Console.ForegroundColor = ConsoleColor.Yellow;
+							Console.BackgroundColor = ConsoleColor.Black;
+							colorSet = true;
+							break;
+						case ISimpleLog.FlagLevelDetail:
+							Console.ForegroundColor = ConsoleColor.DarkGray;
+							Console.BackgroundColor = ConsoleColor.Black;
+							colorSet = true;
+							break;
 					}
-					else if (UseColor && isWarning)
-					{
-						Console.BackgroundColor = ConsoleColor.Black;
-						Console.ForegroundColor = ConsoleColor.Yellow;
-					}
+				}
 
-					((UseErrorOut && (isError || isWarning)) ? Console.Error : Console.Out).WriteLine(message);
+				(UseErrorOut && ((level == ISimpleLog.FlagLevelCritial) || (level == ISimpleLog.FlagLevelError) || (level == ISimpleLog.FlagLevelWarning))
+					? Console.Error : Console.Out).WriteLine(message);
 
-					if (UseColor && (isError || isWarning))
-					{
-						Console.ResetColor();
-					}
+				if (colorSet)
+				{
+					Console.ResetColor();
 				}
 			}
 		}
+
+		/// <summary>
+		/// Object used to thread-lock all output
+		/// </summary>
+		private object threadLock = new object();
 	}
 
 }

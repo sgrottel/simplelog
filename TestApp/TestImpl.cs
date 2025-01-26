@@ -1,6 +1,6 @@
 // TestImpl.cs  SimpleLog  TestApp
 //
-// Copyright 2022-2024 SGrottel (www.sgrottel.de)
+// Copyright 2022-2025 SGrottel (www.sgrottel.de)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -95,9 +95,9 @@ namespace SimpleLogTest
 		{
 			Assert.IsTrue(File.Exists(logfile));
 			string[] lines = File.ReadAllLines(logfile);
-			Assert.AreEqual(11, lines.Length);
+			Assert.AreEqual(12, lines.Length);
 
-			Regex lineReg = new Regex(@"^(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}Z)\|(.+)$");
+			Regex lineReg = new(@"^(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}Z)\|(.+)$");
 
 			if (timestamp != null)
 			{
@@ -106,12 +106,10 @@ namespace SimpleLogTest
 				Assert.AreEqual(3, m.Groups.Count);
 				Assert.IsTrue(m.Groups[1].Success);
 				Assert.IsTrue(m.Groups[2].Success);
-				DateTime lineTime;
-				Assert.IsTrue(DateTime.TryParse(m.Groups[1].Value, out lineTime));
+				Assert.IsTrue(DateTime.TryParse(m.Groups[1].Value, out DateTime lineTime));
 				lineTime = lineTime.Subtract(TimeZoneInfo.Local.GetUtcOffset(lineTime));
 				Assert.IsTrue(m.Groups[2].Value.StartsWith(" Started "));
-				DateTime startTime;
-				Assert.IsTrue(DateTime.TryParse(m.Groups[2].Value.Substring(9), out startTime));
+				Assert.IsTrue(DateTime.TryParse(m.Groups[2].Value.AsSpan(9), out DateTime startTime));
 				startTime = startTime.Subtract(TimeZoneInfo.Local.GetUtcOffset(startTime));
 				Assert.IsTrue((lineTime - timestamp.Value).TotalSeconds < 60.0);
 				Assert.IsTrue((startTime - timestamp.Value).TotalSeconds < 60.0);
@@ -128,16 +126,17 @@ namespace SimpleLogTest
 			}
 
 			Assert.IsTrue(lines[0].StartsWith(" Started "));
-			Assert.IsTrue(lines[1].StartsWith(" Default Directory: "));
-			Assert.IsTrue(lines[2].StartsWith(" Default Name: "));
-			Assert.IsTrue(lines[3].StartsWith(" Default Retention: "));
+			Assert.IsTrue(lines[1].StartsWith("DETAIL Default Directory: "));
+			Assert.IsTrue(lines[2].StartsWith("DETAIL Default Name: "));
+			Assert.IsTrue(lines[3].StartsWith("DETAIL Default Retention: "));
 			Assert.AreEqual(" And now for something completely different:", lines[4]);
-			Assert.AreEqual("ERROR An Error", lines[5]);
-			Assert.AreEqual("WARNING A Warning", lines[6]);
-			Assert.AreEqual(" And a normal Message", lines[7]);
-			Assert.AreEqual(" Formatting away: The quick Fox doesn't care!", lines[8]);
-			Assert.AreEqual(" Arg: " + arg, lines[9]);
-			Assert.AreEqual(" Done.", lines[10]);
+			Assert.AreEqual("CRITICAL A Critical", lines[5]);
+			Assert.AreEqual("ERROR An Error", lines[6]);
+			Assert.AreEqual("WARNING A Warning", lines[7]);
+			Assert.AreEqual(" And a hidden Message", lines[8]);
+			Assert.AreEqual("DETAIL Formatting away: The quick Fox doesn't care!", lines[9]);
+			Assert.AreEqual(" Arg: " + arg, lines[10]);
+			Assert.AreEqual(" Done.", lines[11]);
 
 		}
 
@@ -193,7 +192,7 @@ namespace SimpleLogTest
 
 		private static void WaitForTestWaiting()
 		{
-			using (Semaphore waitSemaphore = new Semaphore(0, 1, "SGROTTEL_SIMPLELOG_TEST_READY"))
+			using (Semaphore waitSemaphore = new(0, 1, "SGROTTEL_SIMPLELOG_TEST_READY"))
 			{
 				bool sig = waitSemaphore.WaitOne(TimeSpan.FromMinutes(10));
 				Assert.IsTrue(sig);
@@ -202,7 +201,7 @@ namespace SimpleLogTest
 
 		private static void SignalTestToContinue()
 		{
-			using (Semaphore readySemaphore = new Semaphore(0, 1, "SGROTTEL_SIMPLELOG_TEST_WAIT"))
+			using (Semaphore readySemaphore = new(0, 1, "SGROTTEL_SIMPLELOG_TEST_WAIT"))
 			{
 				int oc = readySemaphore.Release(1);
 				Assert.AreEqual(0, oc);
