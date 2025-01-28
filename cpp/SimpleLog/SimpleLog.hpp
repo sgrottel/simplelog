@@ -15,8 +15,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _SIMPLELOG_HPP_INCLUDED_
-#define _SIMPLELOG_HPP_INCLUDED_
 #pragma once
 
 #define SIMPLELOG_VER_MAJOR 3
@@ -1217,5 +1215,3 @@ namespace sgrottel
 
 	};
 }
-
-#endif /* _SIMPLELOG_HPP_INCLUDED_ */
