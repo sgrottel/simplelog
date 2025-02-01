@@ -1,5 +1,5 @@
 // SimpleLog.cs
-// Version: 3.0.0
+// Version: 3.1.0
 //
 // Copyright 2022-2025 SGrottel (www.sgrottel.de)
 //
@@ -40,7 +40,7 @@ namespace SGrottel
 		/// <summary>
 		/// Minor version number constant
 		/// </summary>
-		const int VERSION_MINOR = 0;
+		const int VERSION_MINOR = 1;
 
 		/// <summary>
 		/// Patch version number constant
@@ -489,7 +489,7 @@ namespace SGrottel
 	}
 
 	/// <summary>
-	/// Extention to SimpleLog which, which echoes all messages to the console
+	/// Extention to SimpleLog, which echoes all messages to the console
 	/// </summary>
 	public class EchoingSimpleLog : ISimpleLog
 	{
@@ -615,6 +615,50 @@ namespace SGrottel
 		/// Object used to thread-lock all output
 		/// </summary>
 		private object threadLock = new object();
+	}
+
+	/// <summary>
+	/// Extention to SimpleLog, which echoes all messages to DebugOutput
+	/// </summary>
+	public class DebugOutputEchoingSimpleLog : ISimpleLog
+	{
+
+		private ISimpleLog baseLog;
+
+		/// <summary>
+		/// Creates a EchoingSimpleLog with default values for directory, name, and retention
+		/// </summary>
+		public DebugOutputEchoingSimpleLog(ISimpleLog baseLog)
+		{
+			this.baseLog = baseLog;
+		}
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public void Write(string message) => Write(0, message);
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		public void Write(uint flags, string message)
+		{
+			baseLog.Write(flags, message);
+			char levelMarker;
+			switch (flags & ISimpleLog.FlagLevelMask)
+			{
+				case ISimpleLog.FlagLevelCritial: levelMarker = 'C'; break;
+				case ISimpleLog.FlagLevelError: levelMarker = 'E'; break;
+				case ISimpleLog.FlagLevelWarning: levelMarker = 'W'; break;
+				case ISimpleLog.FlagLevelMessage: levelMarker = 'l'; break;
+				case ISimpleLog.FlagLevelDetail: levelMarker = 'd'; break;
+				default: levelMarker = '.'; break;
+			}
+			System.Diagnostics.Debug.WriteLine($"[{levelMarker}] {message}");
+		}
 	}
 
 }

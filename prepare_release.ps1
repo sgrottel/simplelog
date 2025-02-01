@@ -161,19 +161,19 @@ if ($buildNumber) {
 }
 
 if (-not ($cpp -match '(?mi)^\s*#\s*define\s+SIMPLELOG_VER_MAJOR\s+(\d+)\s*$')) {
-	Write-Error "Cpp: failed to define version major value"
+	Write-Error "Cpp: failed to identify version major value define"
 }
 $cppVerMajor = [int]$matches[1]
 if (-not ($cpp -match '(?mi)^\s*#\s*define\s+SIMPLELOG_VER_MINOR\s+(\d+)\s*$')) {
-	Write-Error "Cpp: failed to define version minor value"
+	Write-Error "Cpp: failed to identify version minor value define"
 }
 $cppVerMinor = [int]$matches[1]
 if (-not ($cpp -match '(?mi)^\s*#\s*define\s+SIMPLELOG_VER_PATCH\s+(\d+)\s*$')) {
-	Write-Error "Cpp: failed to define version patch value"
+	Write-Error "Cpp: failed to identify version patch value define"
 }
 $cppVerPatch = [int]$matches[1]
 if (-not ($cpp -match '(?mi)^\s*#\s*define\s+SIMPLELOG_VER_BUILD\s+(\d+)\s*$')) {
-	Write-Error "Cpp: failed to define version build value"
+	Write-Error "Cpp: failed to identify version build value define"
 }
 $cppVerBuild = [int]$matches[1]
 $versionValues = @( $cppVerMajor, $cppVerMinor, $cppVerPatch )
@@ -185,9 +185,34 @@ if ($buildNumber) {
 }
 $cppVer2 = New-Object System.Version $versionValues
 
-if ($cppVer -ne $cppVer2)
+if (-not ($cpp -match '(?mi)^\s*static\s+constexpr\s+int\s+const\s+VERSION_MAJOR\s*=\s*(\d+)\s*;\s*$')) {
+	Write-Error "Cpp: failed to identify version major value constant"
+}
+$cppVerMajor = [int]$matches[1]
+if (-not ($cpp -match '(?mi)^\s*static\s+constexpr\s+int\s+const\s+VERSION_MINOR\s*=\s*(\d+)\s*;\s*$')) {
+	Write-Error "Cpp: failed to identify version minor value constant"
+}
+$cppVerMinor = [int]$matches[1]
+if (-not ($cpp -match '(?mi)^\s*static\s+constexpr\s+int\s+const\s+VERSION_PATCH\s*=\s*(\d+)\s*;\s*$')) {
+	Write-Error "Cpp: failed to identify version patch value constant"
+}
+$cppVerPatch = [int]$matches[1]
+if (-not ($cpp -match '(?mi)^\s*static\s+constexpr\s+int\s+const\s+VERSION_BUILD\s*=\s*(\d+)\s*;\s*$')) {
+	Write-Error "Cpp: failed to identify version build value constant"
+}
+$cppVerBuild = [int]$matches[1]
+$versionValues = @( $cppVerMajor, $cppVerMinor, $cppVerPatch )
+if ($buildNumber) {
+	$cppVerBuild = $buildNumber
+	$versionValues += $buildNumber
+} elseif ($cppVerBuild -ne 0) {
+	$versionValues += $cppVerBuild
+}
+$cppVer3 = New-Object System.Version $versionValues
+
+if ($cppVer -ne $cppVer2 -or $cppVer2 -ne $cppVer3)
 {
-	Write-Error "Cpp: file defines two different version numbers:`n`tHeader comment: $cppVer`n`tCode defines: $cppVer2"
+	Write-Error "Cpp: file defines different version numbers:`n`tHeader comment: $cppVer`n`tCode defines: $cppVer2`n`tCode constants: $cppVer3"
 }
 
 # Inject Build Version
