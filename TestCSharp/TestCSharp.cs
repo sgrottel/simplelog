@@ -30,7 +30,7 @@ internal class TestCSharp
 
 		string logDir = Path.Combine(Path.GetDirectoryName(asm.Location) ?? ".", "log");
 
-		EchoingSimpleLog log = new(new SimpleLog(logDir, "TestSimpleLog", 4));
+		EchoingSimpleLog log = new(new DebugOutputEchoingSimpleLog(new SimpleLog(logDir, "TestSimpleLog", 4)));
 
 		log.Write(EchoingSimpleLog.FlagDontEcho, string.Format("Started {0:u}", DateTime.Now));
 

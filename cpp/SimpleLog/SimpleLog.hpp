@@ -1,5 +1,5 @@
 // SimpleLog.hpp
-// Version: 3.0.0
+// Version: 3.1.0
 //
 // Copyright 2022-2025 SGrottel (www.sgrottel.de)
 //
@@ -18,7 +18,7 @@
 #pragma once
 
 #define SIMPLELOG_VER_MAJOR 3
-#define SIMPLELOG_VER_MINOR 0
+#define SIMPLELOG_VER_MINOR 1
 #define SIMPLELOG_VER_PATCH 0
 #define SIMPLELOG_VER_BUILD 0
 
@@ -66,7 +66,7 @@ namespace sgrottel
 		/// <summary>
 		/// Minor version number constant
 		/// </summary>
-		static constexpr int const VERSION_MINOR = 0;
+		static constexpr int const VERSION_MINOR = 1;
 
 		/// <summary>
 		/// Patch version number constant
@@ -928,8 +928,7 @@ namespace sgrottel
 		/// </summary>
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
-		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
-		/// If set less than zero, the message string is treated being zero terminated.</param>
+		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
 		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) override
 		{
 			std::lock_guard<std::mutex> lock{m_threadLock};
@@ -948,8 +947,7 @@ namespace sgrottel
 		/// </summary>
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
-		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
-		/// If set less than zero, the message string is treated being zero terminated.</param>
+		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
 		void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) override
 		{
 			std::lock_guard<std::mutex> lock{m_threadLock};
@@ -967,7 +965,7 @@ namespace sgrottel
 	};
 
 	/// <summary>
-	/// Extention to SimpleLog which, which echoes all messages to the console
+	/// Extention to SimpleLog, which echoes all messages to the console
 	/// </summary>
 	class EchoingSimpleLog : public ISimpleLog
 	{
@@ -1108,8 +1106,7 @@ namespace sgrottel
 		/// </summary>
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
-		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
-		/// If set less than zero, the message string is treated being zero terminated.</param>
+		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
 		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) override
 		{
 			ForwardWriteImpl(m_baseLog, flags, message, messageLength);
@@ -1163,8 +1160,7 @@ namespace sgrottel
 		/// </summary>
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
-		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
-		/// If set less than zero, the message string is treated being zero terminated.</param>
+		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
 		void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) override
 		{
 			ForwardWriteImpl(m_baseLog, flags, message, messageLength);
@@ -1213,5 +1209,72 @@ namespace sgrottel
 			}
 		}
 
+	};
+
+	/// <summary>
+	/// Extention to SimpleLog, which echoes all messages to DebugOutput
+	/// </summary>
+	class DebugOutputEchoingSimpleLog : public ISimpleLog
+	{
+	private:
+		ISimpleLog& m_baseLog;
+	public:
+		DebugOutputEchoingSimpleLog(ISimpleLog& baseLog) : m_baseLog{ baseLog } {}
+		virtual ~DebugOutputEchoingSimpleLog() = default;
+	protected:
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
+		/// If set less than zero, the message string is treated being zero terminated.</param>
+		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) override
+		{
+			ForwardWriteImpl(m_baseLog, flags, message, messageLength);
+			std::string outputCopy;
+			outputCopy.reserve(messageLength + 4 + 2);
+			outputCopy += "[";
+			switch (flags & ISimpleLog::FlagLevelMask) {
+			case ISimpleLog::FlagLevelCritial: outputCopy += "C"; break;
+			case ISimpleLog::FlagLevelError: outputCopy += "E"; break;
+			case ISimpleLog::FlagLevelWarning: outputCopy += "W"; break;
+			case ISimpleLog::FlagLevelMessage: outputCopy += "l"; break;
+			case ISimpleLog::FlagLevelDetail: outputCopy += "d"; break;
+			default: outputCopy += "."; break;
+			}
+			outputCopy += "] ";
+			outputCopy += std::string_view{ message, messageLength };
+			outputCopy += "\n";
+			OutputDebugStringA(outputCopy.c_str());
+		}
+
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
+		/// If set less than zero, the message string is treated being zero terminated.</param>
+		void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) override
+		{
+			ForwardWriteImpl(m_baseLog, flags, message, messageLength);
+			std::wstring outputCopy;
+			outputCopy.reserve(messageLength + 4 + 2);
+			outputCopy += L"[";
+			switch (flags & ISimpleLog::FlagLevelMask) {
+			case ISimpleLog::FlagLevelCritial: outputCopy += L"C"; break;
+			case ISimpleLog::FlagLevelError: outputCopy += L"E"; break;
+			case ISimpleLog::FlagLevelWarning: outputCopy += L"W"; break;
+			case ISimpleLog::FlagLevelMessage: outputCopy += L"l"; break;
+			case ISimpleLog::FlagLevelDetail: outputCopy += L"d"; break;
+			default: outputCopy += L"."; break;
+			}
+			outputCopy += L"] ";
+			outputCopy += std::wstring_view{ message, messageLength };
+			outputCopy += L"\n";
+			OutputDebugStringW(outputCopy.c_str());
+		}
 	};
 }

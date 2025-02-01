@@ -41,7 +41,8 @@ int wmain(int argc, wchar_t const* argv[])
 	std::filesystem::path logDir = exename.parent_path() / "log";
 
 	sgrottel::SimpleLog logFile{ logDir.generic_wstring(), "TestSimpleLog", 4 };
-	sgrottel::EchoingSimpleLog log{ logFile };
+	sgrottel::DebugOutputEchoingSimpleLog debugLog{ logFile };
+	sgrottel::EchoingSimpleLog log{ debugLog };
 
 	time_t t = std::time(nullptr);
 	struct tm now;
