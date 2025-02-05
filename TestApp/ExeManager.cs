@@ -83,15 +83,7 @@ namespace SimpleLogTest
 			if (testCSharp == null)
 			{
 				string p = Path.Combine(dir, "TestCSharp.exe");
-				if (!File.Exists(p))
-				{
-					string sp = FindSourceFile(Path.Combine(dir, @"..\..\..\..\TestCSharp\bin"), null, "TestCSharp.exe");
-					CopyAllFiles(Path.GetDirectoryName(sp), dir);
-				}
-				if (!File.Exists(p))
-				{
-					throw new FileNotFoundException();
-				}
+				AssertCSharpExe(p);
 				testCSharp = p;
 			}
 
@@ -109,6 +101,26 @@ namespace SimpleLogTest
 				testCpp64 = p;
 			}
 
+		}
+
+		private static void AssertCSharpExe(string targetFile)
+		{
+			string dir = Path.GetDirectoryName(targetFile)!;
+
+			string sourceFile = FindSourceFile(Path.Combine(dir, @"..\..\..\..\TestCSharp\bin"), null, "TestCSharp.exe");
+
+			DateTime targetDate = File.Exists(targetFile) ? File.GetLastWriteTime(targetFile) : DateTime.MinValue;
+			DateTime sourceDate = File.Exists(sourceFile) ? File.GetLastWriteTime(sourceFile) : DateTime.MinValue;
+
+			if (!File.Exists(targetFile) || sourceDate > targetDate)
+			{
+				CopyAllFiles(Path.GetDirectoryName(sourceFile), dir);
+			}
+
+			if (!File.Exists(targetFile))
+			{
+				throw new FileNotFoundException();
+			}
 		}
 
 		private static void AssertCppExe(string targetFile, string buildSubdir)

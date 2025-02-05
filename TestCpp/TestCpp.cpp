@@ -73,7 +73,7 @@ int wmain(int argc, wchar_t const* argv[])
 				BOOL b = ReleaseSemaphore(hReadySemaphore, 1, &pc);
 
 				std::cout << "Waiting...";
-				DWORD waited = WaitForSingleObject(hWaitSemaphore, 1000 * 60 * 10); // 10min
+				DWORD waited = WaitForSingleObject(hWaitSemaphore, 1000 * 60); // 60sec
 				CloseHandle(hWaitSemaphore);
 				if (waited != WAIT_OBJECT_0)
 				{
