@@ -14,12 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace SimpleLogTest
 {
@@ -27,11 +22,6 @@ namespace SimpleLogTest
 	{
 		internal static void OneLogFile(string exe, bool wait)
 		{
-			if (wait)
-			{
-				Thread.Sleep(TimeSpan.FromSeconds(1));
-			}
-
 			Assert.IsFalse(string.IsNullOrEmpty(exe));
 			Assert.IsTrue(File.Exists(exe));
 
@@ -45,8 +35,10 @@ namespace SimpleLogTest
 			{
 				System.Diagnostics.Process p1 = ExeManager.Start(exe, arg, true);
 				WaitForTestWaiting();
-				SignalTestToContinue();
-				p1.WaitForExit();
+				using (var sem = SignalTestToContinue())
+				{
+					p1.WaitForExit();
+				}
 			}
 			else
 			{
@@ -181,8 +173,10 @@ namespace SimpleLogTest
 			AssertLogFileContent(Path.Combine(LogDirManager.Dir, "TestSimpleLog.log"), null, "Second");
 			AssertLogFileContent(Path.Combine(LogDirManager.Dir, "TestSimpleLog.2.log"), null, "Run 0 Prep");
 
-			SignalTestToContinue();
-			Assert.IsTrue(first.WaitForExit((int)TimeSpan.FromMinutes(5).TotalMilliseconds));
+			using (var sem = SignalTestToContinue())
+			{
+				Assert.IsTrue(first.WaitForExit((int)TimeSpan.FromMinutes(5).TotalMilliseconds));
+			}
 
 			files = Directory.GetFiles(LogDirManager.Dir);
 			Assert.AreEqual(3, files.Length);
@@ -203,13 +197,12 @@ namespace SimpleLogTest
 			}
 		}
 
-		private static void SignalTestToContinue()
+		private static Semaphore SignalTestToContinue()
 		{
-			using (Semaphore readySemaphore = new(0, 1, "SGROTTEL_SIMPLELOG_TEST_WAIT"))
-			{
-				int oc = readySemaphore.Release(1);
-				Assert.AreEqual(0, oc);
-			}
+			Semaphore readySemaphore = new(0, 1, "SGROTTEL_SIMPLELOG_TEST_WAIT");
+			int oc = readySemaphore.Release(1);
+			Assert.AreEqual(0, oc);
+			return readySemaphore;
 		}
 
 		internal static void MultiProcessLogFilesToDelete(string exe)
@@ -253,8 +246,10 @@ namespace SimpleLogTest
 			AssertLogFileContent(p2, null, "Iteration 7");
 			AssertLogFileContent(p3, null, "Iteration 6");
 
-			SignalTestToContinue();
-			Assert.IsTrue(first.WaitForExit((int)TimeSpan.FromMinutes(5).TotalMilliseconds));
+			using (var sem = SignalTestToContinue())
+			{
+				Assert.IsTrue(first.WaitForExit((int)TimeSpan.FromMinutes(5).TotalMilliseconds));
+			}
 
 			files = Directory.GetFiles(LogDirManager.Dir);
 			Assert.AreEqual(4, files.Length);
