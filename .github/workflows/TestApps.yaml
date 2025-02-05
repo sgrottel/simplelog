@@ -1,0 +1,61 @@
+name: Test Apps Action
+
+on:
+  push:
+    branches: [ "main", "ci-tests" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Debug, Release]
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Install .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Setup Nuget
+      uses: Nuget/setup-nuget@v2
+
+    - name: Restore nuget packages
+      run: nuget restore ToggleDisplay\ToggleDisplay.sln
+
+    - name: Install dependencies
+      run: dotnet restore ToggleDisplay\ToggleDisplay.sln
+
+    - name: Build Cpp x86
+      working-directory: .
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{matrix.configuration}} /p:Platform=x86 TestCpp\TestCpp.vcxproj
+
+    - name: Build Cpp x64
+      working-directory: .
+      run: msbuild /m /p:Configuration=${{matrix.configuration}} /p:Platform=x64 TestCpp\TestCpp.vcxproj
+
+    - name: Build CSharp
+      run: dotnet build --configuration ${{ matrix.configuration }} --no-restore TestCSharp\TestCSharp.csproj
+
+    - name: Build Test App
+      run: dotnet build --configuration ${{ matrix.configuration }} --no-restore TestApp\TestApp.csproj
+
+    - name: Show Artifacts for Debugging
+      shell: pwsh
+      run: |
+        gci -rec . | % { $_.Fullname }
+
