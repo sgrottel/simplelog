@@ -2,7 +2,7 @@ name: Test Apps Action
 
 on:
   push:
-    branches: [ "main", "ci-tests" ]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
