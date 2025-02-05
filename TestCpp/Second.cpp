@@ -20,5 +20,5 @@
 
 void PrintMessage(sgrottel::ISimpleLog& log, std::wstring const& msg)
 {
-	log.Write(L"BARKBARK %s", msg.c_str());
+	log.Write(msg);
 }
