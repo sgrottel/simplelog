@@ -47,7 +47,7 @@ internal class TestCSharp
 				using (Semaphore waitSemaphore = new(0, 1, "SGROTTEL_SIMPLELOG_TEST_WAIT"))
 				{
 					Console.Write("Waiting...");
-					bool sig = waitSemaphore.WaitOne(TimeSpan.FromMinutes(10));
+					bool sig = waitSemaphore.WaitOne(TimeSpan.FromSeconds(60));
 					if (!sig)
 					{
 						Console.WriteLine();
