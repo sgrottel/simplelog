@@ -1,5 +1,5 @@
 // SimpleLog.hpp
-// Version: 3.1.0
+// Version: 3.1.1
 //
 // Copyright 2022-2025 SGrottel (www.sgrottel.de)
 //
@@ -19,8 +19,15 @@
 
 #define SIMPLELOG_VER_MAJOR 3
 #define SIMPLELOG_VER_MINOR 1
-#define SIMPLELOG_VER_PATCH 0
+#define SIMPLELOG_VER_PATCH 1
 #define SIMPLELOG_VER_BUILD 0
+
+#if !defined(__cplusplus)
+#error SimpleLog.hpp must be compiled as cplusplus source code
+#endif
+#if defined(_MSVC_LANG) && _MSVC_LANG < 201700L
+#error SimpleLog.hpp requires cpp std 2017 or newer
+#endif
 
 #include <cstdint>
 #include <cstdio>
@@ -71,7 +78,7 @@ namespace sgrottel
 		/// <summary>
 		/// Patch version number constant
 		/// </summary>
-		static constexpr int const VERSION_PATCH = 0;
+		static constexpr int const VERSION_PATCH = 1;
 
 		/// <summary>
 		/// Build version number constant
