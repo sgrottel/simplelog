@@ -7,6 +7,7 @@ Integrates via source component (e.g. single header file for cpp), not a lib.
 [![GitHub](https://img.shields.io/github/license/sgrottel/simplelog)](LICENSE)
 [![NuGet Version](https://img.shields.io/nuget/v/SGrottel.SimpleLog.CSharp?logo=nuget&label=CSharp)](https://www.nuget.org/packages/SGrottel.SimpleLog.CSharp/)
 [![NuGet Version](https://img.shields.io/nuget/v/SGrottel.SimpleLog.Cpp?logo=nuget&label=Cpp)](https://www.nuget.org/packages/SGrottel.SimpleLog.Cpp/)
+[![Test Apps Action](https://github.com/sgrottel/simplelog/actions/workflows/TestApps.yaml/badge.svg)](https://github.com/sgrottel/simplelog/actions/workflows/TestApps.yaml)
 
 <!-- PACKET OMIT END -->
 

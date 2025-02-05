@@ -54,8 +54,13 @@ jobs:
     - name: Build Test App
       run: dotnet build --configuration ${{ matrix.configuration }} --no-restore TestApp\TestApp.csproj
 
-    - name: Show Artifacts for Debugging
-      shell: pwsh
-      run: |
-        gci -rec . | % { $_.Fullname }
+    - name: Run Test
+      run: dotnet test --configuration Release --no-restore --no-build .\TestApp\TestApp.csproj --logger trx --results-directory "TestResults-${{ matrix.configuration }}"
 
+    - name: Upload dotnet test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: dotnet-results-${{ matrix.configuration }}
+        path: TestResults-${{ matrix.configuration }}
+      # Use always() to always run this step to publish test results when there are test failures
+      if: ${{ always() }}
