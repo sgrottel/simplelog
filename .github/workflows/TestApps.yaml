@@ -35,9 +35,6 @@ jobs:
     - name: Restore nuget packages
       run: nuget restore SimpleLog.sln
 
-    - name: Install dependencies
-      run: dotnet restore SimpleLog.sln
-
     - name: Build Cpp x86
       working-directory: .
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
