@@ -18,6 +18,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "cpp_SimpleLog", "cpp_Simple
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "TestApp\TestApp.csproj", "{3B14FCE7-21EE-4CC3-8DD3-C0804374DD31}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3F6D4243-1C79-48F0-BF59-3E7E65F132E3} = {3F6D4243-1C79-48F0-BF59-3E7E65F132E3}
+		{CEE09A3B-608D-45F4-8913-74879474DE06} = {CEE09A3B-608D-45F4-8913-74879474DE06}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{48F55ED0-3BD8-4441-ADE2-93E94585928B}"
 	ProjectSection(SolutionItems) = preProject

@@ -14,7 +14,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using SGrottel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +27,11 @@ namespace SimpleLogTest
 	{
 		internal static void OneLogFile(string exe, bool wait)
 		{
+			if (wait)
+			{
+				Thread.Sleep(TimeSpan.FromSeconds(1));
+			}
+
 			Assert.IsFalse(string.IsNullOrEmpty(exe));
 			Assert.IsTrue(File.Exists(exe));
 
@@ -194,7 +198,7 @@ namespace SimpleLogTest
 		{
 			using (Semaphore waitSemaphore = new(0, 1, "SGROTTEL_SIMPLELOG_TEST_READY"))
 			{
-				bool sig = waitSemaphore.WaitOne(TimeSpan.FromMinutes(10));
+				bool sig = waitSemaphore.WaitOne(TimeSpan.FromSeconds(1));
 				Assert.IsTrue(sig);
 			}
 		}
