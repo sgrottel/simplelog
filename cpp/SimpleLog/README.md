@@ -1,5 +1,5 @@
 # SGrottel SimpleLog™ for Cpp
-Version: 3.1.0
+Version: 3.2.0
 
 A very simple log files implementation.
 Logs strings with time stamps into log files and implements log file retention.
