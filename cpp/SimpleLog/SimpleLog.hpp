@@ -1,5 +1,5 @@
 // SimpleLog.hpp
-// Version: 3.1.1
+// Version: 3.2.0
 //
 // Copyright 2022-2025 SGrottel (www.sgrottel.de)
 //
@@ -18,8 +18,8 @@
 #pragma once
 
 #define SIMPLELOG_VER_MAJOR 3
-#define SIMPLELOG_VER_MINOR 1
-#define SIMPLELOG_VER_PATCH 1
+#define SIMPLELOG_VER_MINOR 2
+#define SIMPLELOG_VER_PATCH 0
 #define SIMPLELOG_VER_BUILD 0
 
 #if !defined(__cplusplus)
@@ -73,12 +73,12 @@ namespace sgrottel
 		/// <summary>
 		/// Minor version number constant
 		/// </summary>
-		static constexpr int const VERSION_MINOR = 1;
+		static constexpr int const VERSION_MINOR = 2;
 
 		/// <summary>
 		/// Patch version number constant
 		/// </summary>
-		static constexpr int const VERSION_PATCH = 1;
+		static constexpr int const VERSION_PATCH = 0;
 
 		/// <summary>
 		/// Build version number constant
@@ -123,7 +123,7 @@ namespace sgrottel
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
-		virtual void WriteImpl(uint32_t flags, char const* message, size_t messageLength) = 0;
+		virtual void WriteImpl(uint32_t flags, char const* message, size_t messageLength) const = 0;
 
 		/// <summary>
 		/// Write a message to the log
@@ -131,13 +131,13 @@ namespace sgrottel
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
-		virtual void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) = 0;
+		virtual void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) const = 0;
 
 		/// <summary>
 		/// Utility function to forward the write arguments to the implementation with another object (unknown class of this base).
 		/// </summary>
 		template<typename LOG, typename CHAR>
-		void ForwardWriteImpl(LOG& log, uint32_t flags, CHAR const* message, size_t messageLength)
+		void ForwardWriteImpl(LOG& log, uint32_t flags, CHAR const* message, size_t messageLength) const
 		{
 			log.WriteImpl(flags, message, messageLength);
 		}
@@ -177,7 +177,7 @@ namespace sgrottel
 		/// </summary>
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string; must be zero-terminated. Expected to NOT contain a new line at the end.</param>
-		inline void Write(uint32_t flags, char const* message)
+		inline void Write(uint32_t flags, char const* message) const
 		{
 			this->WriteImpl(flags, message, std::strlen(message));
 		}
@@ -187,7 +187,7 @@ namespace sgrottel
 		/// </summary>
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string; must be zero-terminated. Expected to NOT contain a new line at the end.</param>
-		inline void Write(uint32_t flags, wchar_t const* message)
+		inline void Write(uint32_t flags, wchar_t const* message) const
 		{
 			this->WriteImpl(flags, message, std::wcslen(message));
 		}
@@ -198,7 +198,7 @@ namespace sgrottel
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		template<typename CHAR, typename TRAITS>
-		inline void Write(uint32_t flags, std::basic_string_view<CHAR, TRAITS> const& message)
+		inline void Write(uint32_t flags, std::basic_string_view<CHAR, TRAITS> const& message) const
 		{
 			this->WriteImpl(flags, message.data(), message.length());
 		}
@@ -209,7 +209,7 @@ namespace sgrottel
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		template<typename CHAR, typename TRAITS, typename ALLOCATOR>
-		inline void Write(uint32_t flags, std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message)
+		inline void Write(uint32_t flags, std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message) const
 		{
 			this->WriteImpl(flags, message.data(), message.length());
 		}
@@ -223,7 +223,7 @@ namespace sgrottel
 		/// <param name="p1">The first formatting argument</param>
 		/// <param name="...params">Additional formatting arguments</param>
 		template<typename PARAM1, typename ...PARAMS>
-		inline void Write(uint32_t flags, char const* message, PARAM1&& p1, PARAMS&&... params)
+		inline void Write(uint32_t flags, char const* message, PARAM1&& p1, PARAMS&&... params) const
 		{
 			this->Write(flags, formatString(message, std::forward<PARAM1>(p1), std::forward<PARAMS>(params)...));
 		}
@@ -237,7 +237,7 @@ namespace sgrottel
 		/// <param name="p1">The first formatting argument</param>
 		/// <param name="...params">Additional formatting arguments</param>
 		template<typename PARAM1, typename ...PARAMS>
-		inline void Write(uint32_t flags, wchar_t const* message, PARAM1&& p1, PARAMS&&... params)
+		inline void Write(uint32_t flags, wchar_t const* message, PARAM1&& p1, PARAMS&&... params) const
 		{
 			this->Write(flags, formatString(message, std::forward<PARAM1>(p1), std::forward<PARAMS>(params)...));
 		}
@@ -251,7 +251,7 @@ namespace sgrottel
 		/// <param name="p1">The first formatting argument</param>
 		/// <param name="...params">Additional formatting arguments</param>
 		template<typename CHAR, typename TRAITS, typename PARAM1, typename ...PARAMS>
-		inline void Write(uint32_t flags, std::basic_string_view<CHAR, TRAITS> const& message, PARAM1&& p1, PARAMS&&... params)
+		inline void Write(uint32_t flags, std::basic_string_view<CHAR, TRAITS> const& message, PARAM1&& p1, PARAMS&&... params) const
 		{
 			this->Write(flags, formatString(std::basic_string<CHAR>{message}.c_str(), std::forward<PARAM1>(p1), std::forward<PARAMS>(params)...));
 		}
@@ -265,7 +265,7 @@ namespace sgrottel
 		/// <param name="p1">The first formatting argument</param>
 		/// <param name="...params">Additional formatting arguments</param>
 		template<typename CHAR, typename TRAITS, typename ALLOCATOR, typename PARAM1, typename ...PARAMS>
-		inline void Write(uint32_t flags, std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAM1&& p1, PARAMS&&... params)
+		inline void Write(uint32_t flags, std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAM1&& p1, PARAMS&&... params) const
 		{
 			this->Write(flags, formatString(message.c_str(), std::forward<PARAM1>(p1), std::forward<PARAMS>(params)...));
 		}
@@ -276,7 +276,7 @@ namespace sgrottel
 		/// <param name="message">The message string; must be zero-terminated. Expected to NOT contain a new line at the end.</param>
 		/// <param name="...params">Additional formatting arguments, if any. Formatting follows the specification of the printf function family.</param>
 		template<typename ...PARAMS>
-		inline void Write(char const* message, PARAMS&&... params)
+		inline void Write(char const* message, PARAMS&&... params) const
 		{
 			this->Write(static_cast<uint32_t>(0), message, std::forward<PARAMS>(params)...);
 		}
@@ -287,7 +287,7 @@ namespace sgrottel
 		/// <param name="message">The message string; must be zero-terminated. Expected to NOT contain a new line at the end.</param>
 		/// <param name="...params">Additional formatting arguments, if any. Formatting follows the specification of the printf function family.</param>
 		template<typename ...PARAMS>
-		inline void Write(wchar_t const* message, PARAMS&&... params)
+		inline void Write(wchar_t const* message, PARAMS&&... params) const
 		{
 			this->Write(static_cast<uint32_t>(0), message, std::forward<PARAMS>(params)...);
 		}
@@ -298,7 +298,7 @@ namespace sgrottel
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		/// <param name="...params">Additional formatting arguments, if any. Formatting follows the specification of the printf function family.</param>
 		template<typename CHAR, typename TRAITS, typename ...PARAMS>
-		inline void Write(std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		inline void Write(std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params) const
 		{
 			this->Write(static_cast<uint32_t>(0), message, std::forward<PARAMS>(params)...);
 		}
@@ -309,7 +309,7 @@ namespace sgrottel
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		/// <param name="...params">Additional formatting arguments, if any. Formatting follows the specification of the printf function family.</param>
 		template<typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
-		inline void Write(std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		inline void Write(std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params) const
 		{
 			this->Write(static_cast<uint32_t>(0), message, std::forward<PARAMS>(params)...);
 		}
@@ -317,49 +317,49 @@ namespace sgrottel
 	private:
 
 		template<uint32_t LEVEL, typename ...PARAMS>
-		inline void Special(uint32_t flags, char const* message, PARAMS&&... params)
+		inline void Special(uint32_t flags, char const* message, PARAMS&&... params) const
 		{
 			this->Write(LEVEL | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
 		}
 
 		template<uint32_t LEVEL, typename ...PARAMS>
-		inline void Special(uint32_t flags, wchar_t const* message, PARAMS&&... params)
+		inline void Special(uint32_t flags, wchar_t const* message, PARAMS&&... params) const
 		{
 			this->Write(LEVEL | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
 		}
 
 		template<uint32_t LEVEL, typename CHAR, typename TRAITS, typename ...PARAMS>
-		inline void Special(uint32_t flags, std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		inline void Special(uint32_t flags, std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params) const
 		{
 			this->Write(LEVEL | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
 		}
 
 		template<uint32_t LEVEL, typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
-		inline void Special(uint32_t flags, std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		inline void Special(uint32_t flags, std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params) const
 		{
 			this->Write(LEVEL | (flags & ~ISimpleLog::FlagLevelMask), message, std::forward<PARAMS>(params)...);
 		}
 
 		template<uint32_t LEVEL, typename ...PARAMS>
-		inline void Special(char const* message, PARAMS&&... params)
+		inline void Special(char const* message, PARAMS&&... params) const
 		{
 			this->Write(LEVEL, message, std::forward<PARAMS>(params)...);
 		}
 
 		template<uint32_t LEVEL, typename ...PARAMS>
-		inline void Special(wchar_t const* message, PARAMS&&... params)
+		inline void Special(wchar_t const* message, PARAMS&&... params) const
 		{
 			this->Write(LEVEL, message, std::forward<PARAMS>(params)...);
 		}
 
 		template<uint32_t LEVEL, typename CHAR, typename TRAITS, typename ...PARAMS>
-		inline void Special(std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params)
+		inline void Special(std::basic_string_view<CHAR, TRAITS> const& message, PARAMS&&... params) const
 		{
 			this->Write(LEVEL, message, std::forward<PARAMS>(params)...);
 		}
 
 		template<uint32_t LEVEL, typename CHAR, typename TRAITS, typename ALLOCATOR, typename ...PARAMS>
-		inline void Special(std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params)
+		inline void Special(std::basic_string<CHAR, TRAITS, ALLOCATOR> const& message, PARAMS&&... params) const
 		{
 			this->Write(LEVEL, message, std::forward<PARAMS>(params)...);
 		}
@@ -371,7 +371,8 @@ namespace sgrottel
 		/// The log level bits will be overwritten, and the message with be logged as critical error message.
 		/// </summary>
 		template<typename ...PARAMS>
-		inline void Critical(PARAMS&&... params) {
+		inline void Critical(PARAMS&&... params) const
+		{
 			ISimpleLog::Special<ISimpleLog::FlagLevelCritial>(std::forward<PARAMS>(params)...);
 		}
 
@@ -380,7 +381,8 @@ namespace sgrottel
 		/// The log level bits will be overwritten, and the message with be logged as error message.
 		/// </summary>
 		template<typename ...PARAMS>
-		inline void Error(PARAMS&&... params) {
+		inline void Error(PARAMS&&... params) const
+		{
 			ISimpleLog::Special<ISimpleLog::FlagLevelError>(std::forward<PARAMS>(params)...);
 		}
 
@@ -389,7 +391,8 @@ namespace sgrottel
 		/// The log level bits will be overwritten, and the message with be logged as warning.
 		/// </summary>
 		template<typename ...PARAMS>
-		inline void Warning(PARAMS&&... params) {
+		inline void Warning(PARAMS&&... params) const
+		{
 			ISimpleLog::Special<ISimpleLog::FlagLevelWarning>(std::forward<PARAMS>(params)...);
 		}
 
@@ -398,7 +401,8 @@ namespace sgrottel
 		/// The log level bits will be overwritten, and the message with be logged as message.
 		/// </summary>
 		template<typename ...PARAMS>
-		inline void Message(PARAMS&&... params) {
+		inline void Message(PARAMS&&... params) const
+		{
 			ISimpleLog::Special<ISimpleLog::FlagLevelMessage>(std::forward<PARAMS>(params)...);
 		}
 
@@ -407,7 +411,8 @@ namespace sgrottel
 		/// The log level bits will be overwritten, and the message with be logged as detail message.
 		/// </summary>
 		template<typename ...PARAMS>
-		inline void Detail(PARAMS&&... params) {
+		inline void Detail(PARAMS&&... params) const
+		{
 			ISimpleLog::Special<ISimpleLog::FlagLevelDetail>(std::forward<PARAMS>(params)...);
 		}
 
@@ -435,12 +440,12 @@ namespace sgrottel
 		NullLog& operator=(NullLog&&) = delete;
 
 	protected:
-		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) override
+		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) const override
 		{
 			// intentionally empty
 			// omitting all messages
 		}
-		void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) override
+		void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) const override
 		{
 			// intentionally empty
 			// omitting all messages
@@ -505,7 +510,7 @@ namespace sgrottel
 
 		HANDLE m_file{ INVALID_HANDLE_VALUE };
 
-		void toUtf8UnderLock(const char*& outUtf8Str, size_t& outUtf8StrLen, const wchar_t* str, size_t len)
+		static void toUtf8UnderLock(const char*& outUtf8Str, size_t& outUtf8StrLen, const wchar_t* str, size_t len)
 		{
 			// even if all chars would be 7bit we still would need to copy due to the padding
 			static std::string utf8Str;
@@ -515,7 +520,7 @@ namespace sgrottel
 			outUtf8Str = utf8Str.c_str();
 		}
 
-		void toUtf8UnderLock(const char*& outUtf8Str, size_t& outUtf8StrLen, const char* str, size_t len)
+		static void toUtf8UnderLock(const char*& outUtf8Str, size_t& outUtf8StrLen, const char* str, size_t len)
 		{
 			bool all7Bit = true;
 			for (size_t i = 0; i < len; ++i)
@@ -955,7 +960,7 @@ namespace sgrottel
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
-		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) override
+		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) const override
 		{
 			std::lock_guard<std::mutex> lock{m_threadLock};
 			if (m_file == INVALID_HANDLE_VALUE) return;
@@ -974,7 +979,7 @@ namespace sgrottel
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
-		void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) override
+		void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) const override
 		{
 			std::lock_guard<std::mutex> lock{m_threadLock};
 			if (m_file == INVALID_HANDLE_VALUE) return;
@@ -1138,7 +1143,7 @@ namespace sgrottel
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
-		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) override
+		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) const override
 		{
 			ForwardWriteImpl(m_baseLog, flags, message, messageLength);
 			if ((flags & FlagDontEcho) == FlagDontEcho) return;
@@ -1192,7 +1197,7 @@ namespace sgrottel
 		/// <param name="flags">The message flags</param>
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
-		void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) override
+		void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) const override
 		{
 			ForwardWriteImpl(m_baseLog, flags, message, messageLength);
 			if ((flags & FlagDontEcho) == FlagDontEcho) return;
@@ -1267,7 +1272,7 @@ namespace sgrottel
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
 		/// If set less than zero, the message string is treated being zero terminated.</param>
-		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) override
+		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) const override
 		{
 			ForwardWriteImpl(m_baseLog, flags, message, messageLength);
 			std::string outputCopy;
@@ -1294,7 +1299,7 @@ namespace sgrottel
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.
 		/// If set less than zero, the message string is treated being zero terminated.</param>
-		void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) override
+		void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) const override
 		{
 			ForwardWriteImpl(m_baseLog, flags, message, messageLength);
 			std::wstring outputCopy;

@@ -18,7 +18,7 @@
 
 #include <SimpleLog/SimpleLog.hpp>
 
-void PrintMessage(sgrottel::ISimpleLog& log, std::wstring const& msg)
+void PrintMessage(const sgrottel::ISimpleLog& log, std::wstring const& msg)
 {
 	log.Write(msg);
 }
