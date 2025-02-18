@@ -24,4 +24,4 @@ namespace sgrottel
 	class ISimpleLog;
 }
 
-void PrintMessage(sgrottel::ISimpleLog& log, std::wstring const& msg);
+void PrintMessage(const sgrottel::ISimpleLog& log, std::wstring const& msg);
