@@ -411,7 +411,13 @@ namespace sgrottel
 			ISimpleLog::Special<ISimpleLog::FlagLevelDetail>(std::forward<PARAMS>(params)...);
 		}
 
+		ISimpleLog(const ISimpleLog&) = delete;
+		ISimpleLog(ISimpleLog&&) = delete;
+		ISimpleLog& operator=(const ISimpleLog&) = delete;
+		ISimpleLog& operator=(ISimpleLog&&) = delete;
+
 	protected:
+		ISimpleLog() = default;
 		virtual ~ISimpleLog() = default;
 	};
 
@@ -420,6 +426,14 @@ namespace sgrottel
 	/// </summary>
 	class NullLog : public ISimpleLog
 	{
+	public:
+		NullLog() = default;
+
+		NullLog(const NullLog&) = delete;
+		NullLog(NullLog&&) = delete;
+		NullLog& operator=(const NullLog&) = delete;
+		NullLog& operator=(NullLog&&) = delete;
+
 	protected:
 		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) override
 		{
@@ -876,6 +890,11 @@ namespace sgrottel
 
 		}
 
+		SimpleLog(const SimpleLog&) = delete;
+		SimpleLog(SimpleLog&&) = delete;
+		SimpleLog& operator=(const SimpleLog&) = delete;
+		SimpleLog& operator=(SimpleLog&&) = delete;
+
 		virtual ~SimpleLog()
 		{
 			std::lock_guard<std::mutex> lock{m_threadLock};
@@ -1035,6 +1054,11 @@ namespace sgrottel
 		EchoingSimpleLog(ISimpleLog& baseLog) : m_baseLog{ baseLog } {}
 
 		virtual ~EchoingSimpleLog() = default;
+
+		EchoingSimpleLog(const EchoingSimpleLog&) = delete;
+		EchoingSimpleLog(EchoingSimpleLog&&) = delete;
+		EchoingSimpleLog& operator=(const EchoingSimpleLog&) = delete;
+		EchoingSimpleLog& operator=(EchoingSimpleLog&&) = delete;
 
 		/// <summary>
 		/// Gets the flag whether or not to use stderr for critical, error, and warning messages.
@@ -1228,6 +1252,12 @@ namespace sgrottel
 	public:
 		DebugOutputEchoingSimpleLog(ISimpleLog& baseLog) : m_baseLog{ baseLog } {}
 		virtual ~DebugOutputEchoingSimpleLog() = default;
+
+		DebugOutputEchoingSimpleLog(const DebugOutputEchoingSimpleLog&) = delete;
+		DebugOutputEchoingSimpleLog(DebugOutputEchoingSimpleLog&&) = delete;
+		DebugOutputEchoingSimpleLog& operator=(const DebugOutputEchoingSimpleLog&) = delete;
+		DebugOutputEchoingSimpleLog& operator=(DebugOutputEchoingSimpleLog&&) = delete;
+
 	protected:
 
 		/// <summary>
