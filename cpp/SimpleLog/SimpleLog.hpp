@@ -42,6 +42,10 @@
 #include <stdexcept>
 #include <string_view>
 
+// for console unicode support
+#include <io.h>
+#include <fcntl.h>
+
 #include <iostream>
 
 #if !(defined(_WINDOWS_) || defined(_INC_WINDOWS))
@@ -1232,11 +1236,13 @@ namespace sgrottel
 					colorSet = true;
 				}
 
-				fwprintf(
-					m_useStdErr && (level == FlagLevelCritial || level == FlagLevelError || level == FlagLevelWarning)
+				// TODO: switching modes on every output is bad. Fix this!
+				auto stream = m_useStdErr && (level == FlagLevelCritial || level == FlagLevelError || level == FlagLevelWarning)
 					? stderr
-					: stdout,
-					L"%.*s\n", static_cast<int>(messageLength), message);
+					: stdout;
+				int oldMode = _setmode(_fileno(stream), _O_U8TEXT);
+				fwprintf(stream, L"%.*s\n", static_cast<int>(messageLength), message);
+				_setmode(_fileno(stream), oldMode);
 
 				if (colorSet)
 				{
