@@ -5,7 +5,7 @@
 	<!-- package metadata -->
 	<metadata minClientVersion="3.3">
 		<id>SGrottel.SimpleLog.CSharp</id>
-		<version>3.2.0</version>
+		<version>3.2.1</version>
 		<title>SGrottel.SimpleLog.CSharp</title>
 		<authors>SGrottel</authors>
 		<owners>SGrottel</owners>
@@ -17,7 +17,7 @@
 			A very simple log files implementation.
 			Logs strings with time stamps into log files and implements log file retention.
 		</description>
-		<copyright>Copyright 2022-2024 SGrottel (www.sgrottel.de)</copyright>
+		<copyright>Copyright 2022-2025 SGrottel (www.sgrottel.de)</copyright>
 		<tags>Logs</tags>
 		<readme>docs/README.md</readme>
 

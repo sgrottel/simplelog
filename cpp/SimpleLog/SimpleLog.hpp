@@ -1,5 +1,5 @@
 // SimpleLog.hpp
-// Version: 3.2.0
+// Version: 3.2.1
 //
 // Copyright 2022-2025 SGrottel (www.sgrottel.de)
 //
@@ -19,7 +19,7 @@
 
 #define SIMPLELOG_VER_MAJOR 3
 #define SIMPLELOG_VER_MINOR 2
-#define SIMPLELOG_VER_PATCH 0
+#define SIMPLELOG_VER_PATCH 1
 #define SIMPLELOG_VER_BUILD 0
 
 #if !defined(__cplusplus)
@@ -78,7 +78,7 @@ namespace sgrottel
 		/// <summary>
 		/// Patch version number constant
 		/// </summary>
-		static constexpr int const VERSION_PATCH = 0;
+		static constexpr int const VERSION_PATCH = 1;
 
 		/// <summary>
 		/// Build version number constant
