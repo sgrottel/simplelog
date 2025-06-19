@@ -101,6 +101,8 @@ int wmain(int argc, wchar_t const* argv[])
 
 	log.Write(L"Arg: %s", (argc > 1) ? argv[1] : L"none");
 
+	log.Warning(L"破滅");
+
 	log.Message(std::string_view{ "Done.XYZ", 5 });
 
 	return 0;
