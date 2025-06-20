@@ -1,5 +1,5 @@
 # SGrottel SimpleLog™ for CSharp
-Version: 3.2.1
+Version: 3.3.0
 
 A very simple log files implementation.
 Logs strings with time stamps into log files and implements log file retention.
