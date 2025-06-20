@@ -24,6 +24,8 @@ internal class TestCSharp
 {
 	private static int Main(string[] args)
 	{
+		Console.OutputEncoding = System.Text.Encoding.UTF8;
+
 		bool waitForSemaphore = (args.Length > 1 && args[1] == "-wait");
 
 		var asm = Assembly.GetExecutingAssembly();
@@ -72,6 +74,8 @@ internal class TestCSharp
 		log.Detail(string.Format("Formatting away: {0} {1} {2} {3} {4}", ["The", "quick", "Fox", "doesn't", "care!"]));
 
 		log.Write($"Arg: {((args.Length > 0) ? args[0] : "none")}");
+
+		log.Warning("破滅");
 
 		log.Write("Done.");
 

@@ -5,7 +5,7 @@
 	<!-- package metadata -->
 	<metadata>
 		<id>SGrottel.SimpleLog.Cpp</id>
-		<version>3.2.0</version>
+		<version>3.3.0</version>
 		<title>SGrottel SimpleLog Cpp</title>
 		<authors>SGrottel</authors>
 		<owners>SGrottel</owners>
@@ -17,7 +17,7 @@
 			A very simple log files implementation.
 			Logs strings with time stamps into log files and implements log file retention.
 		</description>
-		<copyright>Copyright 2022-2024 SGrottel (www.sgrottel.de)</copyright>
+		<copyright>Copyright 2022-2025 SGrottel (www.sgrottel.de)</copyright>
 		<tags>Logs native nativepackage</tags>
 		<readme>docs/README.md</readme>
 	</metadata>

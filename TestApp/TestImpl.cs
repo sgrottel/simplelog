@@ -91,7 +91,7 @@ namespace SimpleLogTest
 		{
 			Assert.IsTrue(File.Exists(logfile));
 			string[] lines = File.ReadAllLines(logfile);
-			Assert.AreEqual(12, lines.Length);
+			Assert.AreEqual(13, lines.Length);
 
 			Regex lineReg = new(@"^(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}Z)\|(.+)$");
 
@@ -132,7 +132,8 @@ namespace SimpleLogTest
 			Assert.AreEqual(" And a hidden Message", lines[8]);
 			Assert.AreEqual("DETAIL Formatting away: The quick Fox doesn't care!", lines[9]);
 			Assert.AreEqual(" Arg: " + arg, lines[10]);
-			Assert.AreEqual(" Done.", lines[11]);
+			Assert.AreEqual("WARNING 破滅", lines[11]);
+			Assert.AreEqual(" Done.", lines[12]);
 
 		}
 

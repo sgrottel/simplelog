@@ -1,5 +1,5 @@
 // SimpleLog.hpp
-// Version: 3.2.0
+// Version: 3.3.0
 //
 // Copyright 2022-2025 SGrottel (www.sgrottel.de)
 //
@@ -18,7 +18,7 @@
 #pragma once
 
 #define SIMPLELOG_VER_MAJOR 3
-#define SIMPLELOG_VER_MINOR 2
+#define SIMPLELOG_VER_MINOR 3
 #define SIMPLELOG_VER_PATCH 0
 #define SIMPLELOG_VER_BUILD 0
 
@@ -73,7 +73,7 @@ namespace sgrottel
 		/// <summary>
 		/// Minor version number constant
 		/// </summary>
-		static constexpr int const VERSION_MINOR = 2;
+		static constexpr int const VERSION_MINOR = 3;
 
 		/// <summary>
 		/// Patch version number constant
@@ -1005,7 +1005,7 @@ namespace sgrottel
 		/// Implementation to check if this console output should use colors
 		/// </summary>
 		/// <returns>True if this console output should use colors</returns>
-		static bool EvalCanUseConsoleColors()
+		static bool EvalCanUseConsoleApi()
 		{
 			static bool doEval = true;
 			static bool evalResult = true;
@@ -1031,13 +1031,184 @@ namespace sgrottel
 			return evalResult;
 		}
 
+		/// <summary>
+		/// Write a message to the output stream via print functions
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
+		void WritePrintImplUnderLock(uint32_t flags, char const* message, size_t messageLength) const
+		{
+			uint32_t level = flags & FlagLevelMask;
+			auto stream = m_useStdErr && (level == FlagLevelCritial || level == FlagLevelError || level == FlagLevelWarning)
+				? stderr
+				: stdout;
+			const char* pre = "";
+			const char* post = "";
+
+			if (level == FlagLevelCritial && m_useColors)
+			{
+				pre = "\x1b[41m\x1b[97m";
+				post = "\x1b[0m";
+			}
+			else if (level == FlagLevelError && m_useColors)
+			{
+				pre = "\x1b[40m\x1b[91m";
+				post = "\x1b[0m";
+			}
+			else if (level == FlagLevelWarning && m_useColors)
+			{
+				pre = "\x1b[40m\x1b[93m";
+				post = "\x1b[0m";
+			}
+			else if (level == FlagLevelDetail && m_useColors)
+			{
+				pre = "\x1b[40m\x1b[90m";
+				post = "\x1b[0m";
+			}
+
+			fprintf(stream, "%s%.*s%s\n", pre, static_cast<int>(messageLength), message, post);
+		}
+
+		/// <summary>
+		/// Write a message to the output stream via print functions
+		/// </summary>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
+		void WritePrintImplUnderLock(uint32_t flags, wchar_t const* message, size_t messageLength) const
+		{
+			uint32_t level = flags & FlagLevelMask;
+			auto stream = m_useStdErr && (level == FlagLevelCritial || level == FlagLevelError || level == FlagLevelWarning)
+				? stderr
+				: stdout;
+			const wchar_t* pre = L"";
+			const wchar_t* post = L"";
+
+			if (level == FlagLevelCritial && m_useColors)
+			{
+				pre = L"\x1b[41m\x1b[97m";
+				post = L"\x1b[0m";
+			}
+			else if (level == FlagLevelError && m_useColors)
+			{
+				pre = L"\x1b[40m\x1b[91m";
+				post = L"\x1b[0m";
+			}
+			else if (level == FlagLevelWarning && m_useColors)
+			{
+				pre = L"\x1b[40m\x1b[93m";
+				post = L"\x1b[0m";
+			}
+			else if (level == FlagLevelDetail && m_useColors)
+			{
+				pre = L"\x1b[40m\x1b[90m";
+				post = L"\x1b[0m";
+			}
+
+			fwprintf(stream, L"%s%.*s%s\n", pre, static_cast<int>(messageLength), message, post);
+		}
+
+		/// <summary>
+		/// Write a message to the output console
+		/// </summary>
+		/// <remarks>
+		/// The implementation uses WriteConsole which does not depend on the file mode of stdout, which might be set by the
+		/// host application. Therefore, this implementation is more independent, in terms of output encoding.
+		/// </remarks>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
+		void WriteConsoleImplUnderLock(uint32_t flags, char const* message, size_t messageLength) const
+		{
+			uint32_t level = flags & FlagLevelMask;
+			HANDLE hOut = GetStdHandle(
+				m_useStdErr && (level == FlagLevelCritial || level == FlagLevelError || level == FlagLevelWarning)
+				? STD_ERROR_HANDLE
+				: STD_OUTPUT_HANDLE);
+			bool resetColor = false;
+			if (level == FlagLevelCritial && m_useColors)
+			{
+				WriteConsoleA(hOut, "\x1b[41m\x1b[97m", 10, nullptr, nullptr);
+				resetColor = true;
+			}
+			else if (level == FlagLevelError && m_useColors)
+			{
+				WriteConsoleA(hOut, "\x1b[40m\x1b[91m", 10, nullptr, nullptr);
+				resetColor = true;
+			}
+			else if (level == FlagLevelWarning && m_useColors)
+			{
+				WriteConsoleA(hOut, "\x1b[40m\x1b[93m", 10, nullptr, nullptr);
+				resetColor = true;
+			}
+			else if (level == FlagLevelDetail && m_useColors)
+			{
+				WriteConsoleA(hOut, "\x1b[40m\x1b[90m", 10, nullptr, nullptr);
+				resetColor = true;
+			}
+			WriteConsoleA(hOut, message, static_cast<DWORD>(messageLength), nullptr, nullptr);
+			if (resetColor)
+			{
+				WriteConsoleA(hOut, "\x1b[0m", 4, nullptr, nullptr);
+			}
+			WriteConsoleA(hOut, "\n", 1, nullptr, nullptr);
+		}
+
+		/// <summary>
+		/// Write a message to the output console
+		/// </summary>
+		/// <remarks>
+		/// The implementation uses WriteConsole which does not depend on the file mode of stdout, which might be set by the
+		/// host application. Therefore, this implementation is more independent, in terms of output encoding.
+		/// </remarks>
+		/// <param name="flags">The message flags</param>
+		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
+		/// <param name="messageLength">The length of the message string in characters, not including a terminating zero.</param>
+		void WriteConsoleImplUnderLock(uint32_t flags, wchar_t const* message, size_t messageLength) const
+		{
+			uint32_t level = flags & FlagLevelMask;
+			HANDLE hOut = GetStdHandle(
+				m_useStdErr && (level == FlagLevelCritial || level == FlagLevelError || level == FlagLevelWarning)
+				? STD_ERROR_HANDLE
+				: STD_OUTPUT_HANDLE);
+			bool resetColor = false;
+			if (level == FlagLevelCritial && m_useColors)
+			{
+				WriteConsoleW(hOut, L"\x1b[41m\x1b[97m", 10, nullptr, nullptr);
+				resetColor = true;
+			}
+			else if (level == FlagLevelError && m_useColors)
+			{
+				WriteConsoleW(hOut, L"\x1b[40m\x1b[91m", 10, nullptr, nullptr);
+				resetColor = true;
+			}
+			else if (level == FlagLevelWarning && m_useColors)
+			{
+				WriteConsoleW(hOut, L"\x1b[40m\x1b[93m", 10, nullptr, nullptr);
+				resetColor = true;
+			}
+			else if (level == FlagLevelDetail && m_useColors)
+			{
+				WriteConsoleW(hOut, L"\x1b[40m\x1b[90m", 10, nullptr, nullptr);
+				resetColor = true;
+			}
+			WriteConsoleW(hOut, message, static_cast<DWORD>(messageLength), nullptr, nullptr);
+			if (resetColor)
+			{
+				WriteConsoleW(hOut, L"\x1b[0m", 4, nullptr, nullptr);
+			}
+			WriteConsoleW(hOut, L"\n", 1, nullptr, nullptr);
+		}
+
 		bool m_useStdErr = false;
-		bool m_useColors = EvalCanUseConsoleColors();
+		bool m_useColors = EvalCanUseConsoleApi();
 		bool m_echoCriticals = true;
 		bool m_echoErrors = true;
 		bool m_echoWarnings = true;
 		bool m_echoMessages = true;
 		bool m_echoDetails = true;
+		bool m_useConsoleWrite = EvalCanUseConsoleApi();
 
 		ISimpleLog& m_baseLog;
 
@@ -1083,7 +1254,7 @@ namespace sgrottel
 		/// <summary>
 		/// Sets the flag whether or not to output colored text if supported.
 		/// </summary>
-		inline void SetUseColors(bool useColors) noexcept { m_useColors = useColors && EvalCanUseConsoleColors(); }
+		inline void SetUseColors(bool useColors) noexcept { m_useColors = useColors && EvalCanUseConsoleApi(); }
 
 		/// <summary>
 		/// Gets the flag whether or not to echo critical error messages
@@ -1135,6 +1306,16 @@ namespace sgrottel
 		/// </summary>
 		inline void SetEchoDetails(bool echoDetails) noexcept { m_echoDetails = echoDetails; }
 
+		/// <summary>
+		/// Gets the flag whether or not to output colored text if supported.
+		/// </summary>
+		inline bool GetUseConsoleWrite() const noexcept { return m_useConsoleWrite; }
+
+		/// <summary>
+		/// Sets the flag whether or not to output colored text if supported.
+		/// </summary>
+		inline void SetUseConsoleWrite(bool useColors) noexcept { m_useConsoleWrite = useColors && EvalCanUseConsoleApi(); }
+
 	protected:
 
 		/// <summary>
@@ -1156,37 +1337,13 @@ namespace sgrottel
 
 			{
 				std::lock_guard<std::mutex> lock{m_threadLock};
-				bool colorSet = false;
-				if (level == FlagLevelCritial && m_useColors)
+				if (m_useConsoleWrite)
 				{
-					printf("\x1b[41m\x1b[97m");
-					colorSet = true;
+					WriteConsoleImplUnderLock(flags, message, messageLength);
 				}
-				else if (level == FlagLevelError && m_useColors)
+				else
 				{
-					printf("\x1b[40m\x1b[91m");
-					colorSet = true;
-				}
-				else if (level == FlagLevelWarning && m_useColors)
-				{
-					printf("\x1b[40m\x1b[93m");
-					colorSet = true;
-				}
-				else if (level == FlagLevelDetail && m_useColors)
-				{
-					printf("\x1b[40m\x1b[90m");
-					colorSet = true;
-				}
-
-				fprintf(
-					m_useStdErr && (level == FlagLevelCritial || level == FlagLevelError || level == FlagLevelWarning)
-					? stderr
-					: stdout,
-					"%.*s\n", static_cast<int>(messageLength), message);
-
-				if (colorSet)
-				{
-					printf("\x1b[0m");
+					WritePrintImplUnderLock(flags, message, messageLength);
 				}
 			}
 		}
@@ -1210,37 +1367,13 @@ namespace sgrottel
 
 			{
 				std::lock_guard<std::mutex> lock{m_threadLock};
-				bool colorSet = false;
-				if (level == FlagLevelCritial && m_useColors)
+				if (m_useConsoleWrite)
 				{
-					wprintf(L"\x1b[41m\x1b[97m");
-					colorSet = true;
+					WriteConsoleImplUnderLock(flags, message, messageLength);
 				}
-				else if (level == FlagLevelError && m_useColors)
+				else
 				{
-					wprintf(L"\x1b[40m\x1b[91m");
-					colorSet = true;
-				}
-				else if (level == FlagLevelWarning && m_useColors)
-				{
-					wprintf(L"\x1b[40m\x1b[93m");
-					colorSet = true;
-				}
-				else if (level == FlagLevelDetail && m_useColors)
-				{
-					wprintf(L"\x1b[40m\x1b[90m");
-					colorSet = true;
-				}
-
-				fwprintf(
-					m_useStdErr && (level == FlagLevelCritial || level == FlagLevelError || level == FlagLevelWarning)
-					? stderr
-					: stdout,
-					L"%.*s\n", static_cast<int>(messageLength), message);
-
-				if (colorSet)
-				{
-					wprintf(L"\x1b[0m");
+					WritePrintImplUnderLock(flags, message, messageLength);
 				}
 			}
 		}
