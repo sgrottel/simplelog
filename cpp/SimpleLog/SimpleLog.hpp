@@ -42,10 +42,6 @@
 #include <stdexcept>
 #include <string_view>
 
-// for console unicode support
-#include <io.h>
-#include <fcntl.h>
-
 #include <iostream>
 
 #if !(defined(_WINDOWS_) || defined(_INC_WINDOWS))
