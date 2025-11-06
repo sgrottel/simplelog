@@ -55,7 +55,7 @@ jobs:
       run: dotnet test --configuration ${{ matrix.configuration }} --no-restore --no-build .\TestApp\TestApp.csproj --logger trx --results-directory "TestResults-${{ matrix.configuration }}"
 
     - name: Upload dotnet test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: dotnet-results-${{ matrix.configuration }}
         path: TestResults-${{ matrix.configuration }}
