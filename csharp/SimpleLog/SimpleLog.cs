@@ -55,7 +55,7 @@ namespace SGrottel
 		/// <summary>
 		/// Flag message as critical error
 		/// </summary>
-		const uint FlagLevelCritial = 0x00000007;
+		const uint FlagLevelCritical = 0x00000007;
 
 		/// <summary>
 		/// Flag message as error
@@ -107,7 +107,7 @@ namespace SGrottel
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		public static void Critical(this ISimpleLog? Log, string message)
 		{
-			Log?.Write(ISimpleLog.FlagLevelCritial, message);
+			Log?.Write(ISimpleLog.FlagLevelCritical, message);
 		}
 
 		/// <summary>
@@ -117,7 +117,7 @@ namespace SGrottel
 		/// <param name="message">The message string. Expected to NOT contain a new line at the end.</param>
 		public static void Critical(this ISimpleLog? Log, uint flags, string message)
 		{
-			Log?.Write(ISimpleLog.FlagLevelCritial | (flags & ~ISimpleLog.FlagLevelMask), message);
+			Log?.Write(ISimpleLog.FlagLevelCritical | (flags & ~ISimpleLog.FlagLevelMask), message);
 		}
 
 		/// <summary>
@@ -470,7 +470,7 @@ namespace SGrottel
 				string type = "";
 				switch (flags & ISimpleLog.FlagLevelMask)
 				{
-					case ISimpleLog.FlagLevelCritial: type = "CRITICAL"; break;
+					case ISimpleLog.FlagLevelCritical: type = "CRITICAL"; break;
 					case ISimpleLog.FlagLevelError: type = "ERROR"; break;
 					case ISimpleLog.FlagLevelWarning: type = "WARNING"; break;
 					case ISimpleLog.FlagLevelDetail: type = "DETAIL"; break;
@@ -565,7 +565,7 @@ namespace SGrottel
 			baseLog.Write(flags, message);
 			if ((flags & FlagDontEcho) == FlagDontEcho) return;
 			uint level = flags & ISimpleLog.FlagLevelMask;
-			if (level == ISimpleLog.FlagLevelCritial && !EchoCriticals) return;
+			if (level == ISimpleLog.FlagLevelCritical && !EchoCriticals) return;
 			if (level == ISimpleLog.FlagLevelError && !EchoErrors) return;
 			if (level == ISimpleLog.FlagLevelWarning && !EchoWarnings) return;
 			if (level == ISimpleLog.FlagLevelMessage  && !EchoMessages) return;
@@ -578,7 +578,7 @@ namespace SGrottel
 				{
 					switch (level)
 					{
-						case ISimpleLog.FlagLevelCritial:
+						case ISimpleLog.FlagLevelCritical:
 							Console.ForegroundColor = ConsoleColor.White;
 							Console.BackgroundColor = ConsoleColor.Red;
 							colorSet = true;
@@ -601,7 +601,7 @@ namespace SGrottel
 					}
 				}
 
-				(UseErrorOut && ((level == ISimpleLog.FlagLevelCritial) || (level == ISimpleLog.FlagLevelError) || (level == ISimpleLog.FlagLevelWarning))
+				(UseErrorOut && ((level == ISimpleLog.FlagLevelCritical) || (level == ISimpleLog.FlagLevelError) || (level == ISimpleLog.FlagLevelWarning))
 					? Console.Error : Console.Out).WriteLine(message);
 
 				if (colorSet)
@@ -650,7 +650,7 @@ namespace SGrottel
 			char levelMarker;
 			switch (flags & ISimpleLog.FlagLevelMask)
 			{
-				case ISimpleLog.FlagLevelCritial: levelMarker = 'C'; break;
+				case ISimpleLog.FlagLevelCritical: levelMarker = 'C'; break;
 				case ISimpleLog.FlagLevelError: levelMarker = 'E'; break;
 				case ISimpleLog.FlagLevelWarning: levelMarker = 'W'; break;
 				case ISimpleLog.FlagLevelMessage: levelMarker = 'l'; break;
