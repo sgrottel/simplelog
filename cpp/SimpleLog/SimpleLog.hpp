@@ -88,7 +88,7 @@ namespace sgrottel
 		/// <summary>
 		/// Flag message as critical error
 		/// </summary>
-		static constexpr uint32_t const FlagLevelCritial = 0x00000007;
+		static constexpr uint32_t const FlagLevelCritical = 0x00000007;
 
 		/// <summary>
 		/// Flag message as error
@@ -373,7 +373,7 @@ namespace sgrottel
 		template<typename ...PARAMS>
 		inline void Critical(PARAMS&&... params) const
 		{
-			ISimpleLog::Special<ISimpleLog::FlagLevelCritial>(std::forward<PARAMS>(params)...);
+			ISimpleLog::Special<ISimpleLog::FlagLevelCritical>(std::forward<PARAMS>(params)...);
 		}
 
 		/// <summary>
@@ -558,7 +558,7 @@ namespace sgrottel
 
 			const char* typeStr = "";
 			size_t typeStrLen = 0;
-			if ((flags & FlagLevelMask) == FlagLevelCritial)
+			if ((flags & FlagLevelMask) == FlagLevelCritical)
 			{
 				typeStr = "CRITICAL";
 				typeStrLen = 8;
@@ -1040,13 +1040,13 @@ namespace sgrottel
 		void WritePrintImplUnderLock(uint32_t flags, char const* message, size_t messageLength) const
 		{
 			uint32_t level = flags & FlagLevelMask;
-			auto stream = m_useStdErr && (level == FlagLevelCritial || level == FlagLevelError || level == FlagLevelWarning)
+			auto stream = m_useStdErr && (level == FlagLevelCritical || level == FlagLevelError || level == FlagLevelWarning)
 				? stderr
 				: stdout;
 			const char* pre = "";
 			const char* post = "";
 
-			if (level == FlagLevelCritial && m_useColors)
+			if (level == FlagLevelCritical && m_useColors)
 			{
 				pre = "\x1b[41m\x1b[97m";
 				post = "\x1b[0m";
@@ -1079,13 +1079,13 @@ namespace sgrottel
 		void WritePrintImplUnderLock(uint32_t flags, wchar_t const* message, size_t messageLength) const
 		{
 			uint32_t level = flags & FlagLevelMask;
-			auto stream = m_useStdErr && (level == FlagLevelCritial || level == FlagLevelError || level == FlagLevelWarning)
+			auto stream = m_useStdErr && (level == FlagLevelCritical || level == FlagLevelError || level == FlagLevelWarning)
 				? stderr
 				: stdout;
 			const wchar_t* pre = L"";
 			const wchar_t* post = L"";
 
-			if (level == FlagLevelCritial && m_useColors)
+			if (level == FlagLevelCritical && m_useColors)
 			{
 				pre = L"\x1b[41m\x1b[97m";
 				post = L"\x1b[0m";
@@ -1123,11 +1123,11 @@ namespace sgrottel
 		{
 			uint32_t level = flags & FlagLevelMask;
 			HANDLE hOut = GetStdHandle(
-				m_useStdErr && (level == FlagLevelCritial || level == FlagLevelError || level == FlagLevelWarning)
+				m_useStdErr && (level == FlagLevelCritical || level == FlagLevelError || level == FlagLevelWarning)
 				? STD_ERROR_HANDLE
 				: STD_OUTPUT_HANDLE);
 			bool resetColor = false;
-			if (level == FlagLevelCritial && m_useColors)
+			if (level == FlagLevelCritical && m_useColors)
 			{
 				WriteConsoleA(hOut, "\x1b[41m\x1b[97m", 10, nullptr, nullptr);
 				resetColor = true;
@@ -1169,11 +1169,11 @@ namespace sgrottel
 		{
 			uint32_t level = flags & FlagLevelMask;
 			HANDLE hOut = GetStdHandle(
-				m_useStdErr && (level == FlagLevelCritial || level == FlagLevelError || level == FlagLevelWarning)
+				m_useStdErr && (level == FlagLevelCritical || level == FlagLevelError || level == FlagLevelWarning)
 				? STD_ERROR_HANDLE
 				: STD_OUTPUT_HANDLE);
 			bool resetColor = false;
-			if (level == FlagLevelCritial && m_useColors)
+			if (level == FlagLevelCritical && m_useColors)
 			{
 				WriteConsoleW(hOut, L"\x1b[41m\x1b[97m", 10, nullptr, nullptr);
 				resetColor = true;
@@ -1329,7 +1329,7 @@ namespace sgrottel
 			ForwardWriteImpl(m_baseLog, flags, message, messageLength);
 			if ((flags & FlagDontEcho) == FlagDontEcho) return;
 			uint32_t level = flags & FlagLevelMask;
-			if (level == FlagLevelCritial && !m_echoCriticals) return;
+			if (level == FlagLevelCritical && !m_echoCriticals) return;
 			if (level == FlagLevelError && !m_echoErrors) return;
 			if (level == FlagLevelWarning && !m_echoWarnings) return;
 			if (level == FlagLevelMessage && !m_echoMessages) return;
@@ -1359,7 +1359,7 @@ namespace sgrottel
 			ForwardWriteImpl(m_baseLog, flags, message, messageLength);
 			if ((flags & FlagDontEcho) == FlagDontEcho) return;
 			uint32_t level = flags & FlagLevelMask;
-			if (level == FlagLevelCritial && !m_echoCriticals) return;
+			if (level == FlagLevelCritical && !m_echoCriticals) return;
 			if (level == FlagLevelError && !m_echoErrors) return;
 			if (level == FlagLevelWarning && !m_echoWarnings) return;
 			if (level == FlagLevelMessage && !m_echoMessages) return;
@@ -1412,7 +1412,7 @@ namespace sgrottel
 			outputCopy.reserve(messageLength + 4 + 2);
 			outputCopy += "[";
 			switch (flags & ISimpleLog::FlagLevelMask) {
-			case ISimpleLog::FlagLevelCritial: outputCopy += "C"; break;
+			case ISimpleLog::FlagLevelCritical: outputCopy += "C"; break;
 			case ISimpleLog::FlagLevelError: outputCopy += "E"; break;
 			case ISimpleLog::FlagLevelWarning: outputCopy += "W"; break;
 			case ISimpleLog::FlagLevelMessage: outputCopy += "l"; break;
@@ -1439,7 +1439,7 @@ namespace sgrottel
 			outputCopy.reserve(messageLength + 4 + 2);
 			outputCopy += L"[";
 			switch (flags & ISimpleLog::FlagLevelMask) {
-			case ISimpleLog::FlagLevelCritial: outputCopy += L"C"; break;
+			case ISimpleLog::FlagLevelCritical: outputCopy += L"C"; break;
 			case ISimpleLog::FlagLevelError: outputCopy += L"E"; break;
 			case ISimpleLog::FlagLevelWarning: outputCopy += L"W"; break;
 			case ISimpleLog::FlagLevelMessage: outputCopy += L"l"; break;
