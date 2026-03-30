@@ -30,7 +30,7 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Setup Nuget
-      uses: Nuget/setup-nuget@v2
+      uses: Nuget/setup-nuget@v3
 
     - name: Restore nuget packages
       run: nuget restore SimpleLog.sln
