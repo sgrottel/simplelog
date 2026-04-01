@@ -18,6 +18,7 @@
 #nullable enable
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -32,6 +33,10 @@ namespace SGrottel
 	/// </summary>
 	public interface ISimpleLog
 	{
+
+#pragma warning disable CA1707  // Identifiers should not contain underscores
+								// These identifies names are kept in sync with the cpp defines
+
 		/// <summary>
 		/// Major version number constant
 		/// </summary>
@@ -51,6 +56,8 @@ namespace SGrottel
 		/// Build version number constant
 		/// </summary>
 		const int VERSION_BUILD = 0;
+
+#pragma warning restore CA1707
 
 		/// <summary>
 		/// Flag message as critical error
@@ -217,7 +224,7 @@ namespace SGrottel
 	/// <summary>
 	/// SimpleLog implementation
 	/// </summary>
-	public class SimpleLog : ISimpleLog
+	public class SimpleLog : ISimpleLog, IDisposable
 	{
 		#region Ctor
 
@@ -378,7 +385,25 @@ namespace SGrottel
 		/// </summary>
 		public SimpleLog() : this(GetDefaultDirectory(), GetDefaultName(), GetDefaultRetention()) { }
 
-		private StreamWriter? writer = null;
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!disposedValue)
+			{
+				if (disposing)
+				{
+					writer?.Dispose();
+				}
+
+				writer = null;
+				disposedValue = true;
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(disposing: true);
+			GC.SuppressFinalize(this);
+		}
 
 		/// <summary>
 		/// Creates a SimpleLog instance.
@@ -395,11 +420,11 @@ namespace SGrottel
 			}
 
 			// check arguments
-			if (directory == null) throw new ArgumentNullException("directory");
-			if (name == null) throw new ArgumentNullException("name");
-			if (string.IsNullOrWhiteSpace(directory)) throw new ArgumentException("directory");
-			if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("name");
-			if (retention < 2) throw new ArgumentException("retention");
+			ArgumentNullException.ThrowIfNull(directory);
+			ArgumentNullException.ThrowIfNull(name);
+			ArgumentException.ThrowIfNullOrWhiteSpace(directory);
+			ArgumentException.ThrowIfNullOrWhiteSpace(name);
+			if (retention < 2) throw new ArgumentException(nameof(retention));
 
 			using (Mutex logSetupMutex = new Mutex(false, "SGROTTEL_SIMPLELOG_CREATION"))
 			{
@@ -409,33 +434,33 @@ namespace SGrottel
 					if (!Directory.Exists(directory))
 					{
 						string? pp = Path.GetDirectoryName(directory);
-						if (!Directory.Exists(pp)) throw new Exception("Log directory does not exist");
+						if (!Directory.Exists(pp)) throw new DirectoryNotFoundException("Log directory does not exist");
 						Directory.CreateDirectory(directory);
-						if (!Directory.Exists(directory)) throw new Exception("Failed to create log directory");
+						if (!Directory.Exists(directory)) throw new IOException("Failed to create log directory");
 					}
 
-					string fn = Path.Combine(directory, string.Format("{0}.{1}.log", name, retention - 1));
+					string fn = Path.Combine(directory, string.Format(CultureInfo.InvariantCulture, "{0}.{1}.log", name, retention - 1));
 					if (File.Exists(fn))
 					{
 						File.Delete(fn);
-						if (File.Exists(fn)) throw new Exception(string.Format("Failed to delete old log file '{0}'", fn));
+						if (File.Exists(fn)) throw new IOException($"Failed to delete old log file '{fn}'");
 					}
 
 					for (int i = retention - 1; i > 0; --i)
 					{
-						string tfn = Path.Combine(directory, string.Format("{0}.{1}.log", name, i));
-						string sfn = Path.Combine(directory, string.Format("{0}.{1}.log", name, i - 1));
-						if (i == 1) sfn = Path.Combine(directory, string.Format("{0}.log", name));
+						string tfn = Path.Combine(directory, string.Format(CultureInfo.InvariantCulture, "{0}.{1}.log", name, i));
+						string sfn = Path.Combine(directory, string.Format(CultureInfo.InvariantCulture, "{0}.{1}.log", name, i - 1));
+						if (i == 1) sfn = Path.Combine(directory, string.Format(CultureInfo.InvariantCulture, "{0}.log", name));
 						if (!File.Exists(sfn)) continue;
-						if (File.Exists(tfn)) throw new Exception(string.Format("Log file retention error. Unexpected log file: '{0}'", tfn));
+						if (File.Exists(tfn)) throw new IOException($"Log file retention error. Unexpected log file: '{tfn}'");
 						File.Move(sfn, tfn);
-						if (File.Exists(sfn)) throw new Exception(string.Format("Log file retention error. Unable to move log file: '{0}'", sfn));
+						if (File.Exists(sfn)) throw new IOException($"Log file retention error. Unable to move log file: '{sfn}'");
 					}
 
 					// Share mode `Delete` allows other processes to rename the file while it is being written.
 					// This works because this process keeps an open file handle to write messages, and never reopens based on a file name.
 					var file = File.Open(
-						Path.Combine(directory, string.Format("{0}.log", name)),
+						Path.Combine(directory, string.Format(CultureInfo.InvariantCulture, "{0}.log", name)),
 						FileMode.OpenOrCreate,
 						FileAccess.Write,
 						FileShare.Read | FileShare.Delete);
@@ -481,10 +506,14 @@ namespace SGrottel
 		}
 		#endregion
 
+		private StreamWriter? writer;
+
 		/// <summary>
 		/// Object used to thread-lock all output
 		/// </summary>
 		private object threadLock = new object();
+
+		private bool disposedValue;
 
 	}
 
@@ -513,7 +542,7 @@ namespace SGrottel
 		/// If set to `true`, critical, error, and warning messages will be echoed to `Console.Error`.
 		/// For normal and detail messages or if this is set to `false` the messages will be echoed to `Console.Out`
 		/// </summary>
-		public bool UseErrorOut { get; set; } = false;
+		public bool UseErrorOut { get; set; }
 
 		/// <summary>
 		/// If set to `true`,
