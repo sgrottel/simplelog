@@ -58,6 +58,13 @@ namespace SGrottel
 		const uint FlagLevelCritical = 0x00000007;
 
 		/// <summary>
+		/// Flag message as critical error (deprecated)
+		/// </summary>
+		/// <remarks>Deprecated! Use `FlagLevelCritical` instead</remarks>
+		[Obsolete("Deprecated! Use `FlagLevelCritical` instead")] 
+		const uint FlagLevelCritial = 0x00000007;
+
+		/// <summary>
 		/// Flag message as error
 		/// </summary>
 		const uint FlagLevelError = 0x00000005;

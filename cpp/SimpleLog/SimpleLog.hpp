@@ -91,6 +91,13 @@ namespace sgrottel
 		static constexpr uint32_t const FlagLevelCritical = 0x00000007;
 
 		/// <summary>
+		/// Flag message as critical error (deprecated)
+		/// </summary>
+		/// <remarks>Deprecated! Use `FlagLevelCritical` instead</remarks>
+		[[deprecated("Deprecated! Use `FlagLevelCritical` instead")]] 
+		static constexpr uint32_t const FlagLevelCritial = 0x00000007;
+
+		/// <summary>
 		/// Flag message as error
 		/// </summary>
 		static constexpr uint32_t const FlagLevelError = 0x00000005;
