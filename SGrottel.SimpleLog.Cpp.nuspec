@@ -26,7 +26,6 @@
 	<files>
 		<!-- includes -->
 		<file src="cpp\SimpleLog\SimpleLog.hpp" target="build\native\include\SimpleLog" />
-		<file src="cpp\SimpleLog\ComponentSource.json" target="build\native\include\SimpleLog" />
 
 		<!-- VS files -->
 		<file src="SGrottel.SimpleLog.Cpp.targets" target="build\native\SGrottel.SimpleLog.Cpp.targets" />

@@ -5,7 +5,7 @@
 	<!-- package metadata -->
 	<metadata minClientVersion="3.3">
 		<id>SGrottel.SimpleLog.CSharp</id>
-		<version>3.3.0</version>
+		<version>3.3.1</version>
 		<title>SGrottel.SimpleLog.CSharp</title>
 		<authors>SGrottel</authors>
 		<owners>SGrottel</owners>
@@ -23,7 +23,6 @@
 
 		<contentFiles>
 			<files include="cs/any/SimpleLog/SimpleLog.cs" />
-			<files include="cs/any/SimpleLog/ComponentSource.json" buildAction="None" />
 		</contentFiles>
 	</metadata>
 
@@ -31,7 +30,6 @@
 	<files>
 		<!-- code -->
 		<file src="csharp\SimpleLog\SimpleLog.cs" target="contentFiles/cs/any/SimpleLog" />
-		<file src="csharp\SimpleLog\ComponentSource.json" target="contentFiles/cs/any/SimpleLog" />
 
 		<!-- doc -->
 		<file src="csharp\SimpleLog\LICENSE" target="docs/LICENSE" />

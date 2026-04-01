@@ -226,23 +226,6 @@ if ($buildNumber) {
 
 
 # Utility functions
-function Update-ComponentSource {
-	param(
-		[string]$path,
-		[string]$githash,
-		[System.Version]$version,
-		[bool]$forceUpdate
-	)
-	$json = (Get-Content $path -Raw | ConvertFrom-Json -AsHashTable)
-	if ($forceUpdate -or $json['components'][0]['source'][0]['version'] -ne "$version")
-	{
-		Write-Host "Updating '$path'`n`tGit Hash: $githash`n`tVersion: $version"
-		$json['components'][0]['source'][0]['version'] = "$version"
-		$json['components'][0]['source'][0]['hash'] = $githash
-		$json | ConvertTo-Json -Depth 10 | Foreach-Object { $_ -replace '  ', "`t" -replace "`r`n", "`n" } | Set-Content $path -NoNewLine -Encoding "utf8NoBOM"
-	}
-}
-
 function Build-ReadMe {
 	param(
 		[string]$path,
@@ -292,14 +275,12 @@ function Update-Nuspec {
 
 
 # CSharp Package
-Update-ComponentSource csharp/SimpleLog/ComponentSource.json $githash $csharpVer ([bool]$buildNumber)
 Build-ReadMe csharp/SimpleLog/README.md CSharp Cpp $csharpVer
 Copy-Item ./LICENSE csharp/SimpleLog/LICENSE
 Update-Nuspec SGrottel.SimpleLog.CSharp.nuspec $csharpVer
 
 
 # Cpp Package
-Update-ComponentSource cpp/SimpleLog/ComponentSource.json $githash $cppVer ([bool]$buildNumber)
 Build-ReadMe cpp/SimpleLog/README.md Cpp CSharp $cppVer
 Copy-Item ./LICENSE cpp/SimpleLog/LICENSE
 Update-Nuspec SGrottel.SimpleLog.Cpp.nuspec $cppVer

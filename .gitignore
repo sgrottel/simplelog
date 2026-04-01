@@ -4,3 +4,7 @@
 desktop.ini
 **/Properties/launchSettings.json
 *.nupkg
+cpp/SimpleLog/LICENSE
+csharp/SimpleLog/LICENSE
+csharp/SimpleLog/README.md
+cpp/SimpleLog/README.md
