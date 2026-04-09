@@ -431,7 +431,7 @@ namespace SGrottel
 			ArgumentNullException.ThrowIfNull(name);
 			ArgumentException.ThrowIfNullOrWhiteSpace(directory);
 			ArgumentException.ThrowIfNullOrWhiteSpace(name);
-			if (retention < 2) throw new ArgumentException(nameof(retention));
+			if (retention < 2) throw new ArgumentException("Retention value must be 2 or larger", paramName: nameof(retention));
 
 			using (Mutex logSetupMutex = new Mutex(false, "SGROTTEL_SIMPLELOG_CREATION"))
 			{
