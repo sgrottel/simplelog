@@ -1,5 +1,5 @@
 // SimpleLog.cs
-// Version: 3.3.1
+// Version: 3.3.2
 //
 // Copyright 2022-2026 SGrottel (www.sgrottel.de)
 //
@@ -50,7 +50,7 @@ namespace SGrottel
 		/// <summary>
 		/// Patch version number constant
 		/// </summary>
-		const int VERSION_PATCH = 1;
+		const int VERSION_PATCH = 2;
 
 		/// <summary>
 		/// Build version number constant
