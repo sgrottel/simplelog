@@ -45,9 +45,13 @@
 #include <iostream>
 
 #if !(defined(_WINDOWS_) || defined(_INC_WINDOWS))
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef VC_EXTRALEAN
 #define VC_EXTRALEAN
 #include <Windows.h>
+#endif
 #endif
 
 #ifndef WINSHELLAPI
@@ -447,12 +451,12 @@ namespace sgrottel
 		NullLog& operator=(NullLog&&) = delete;
 
 	protected:
-		void WriteImpl(uint32_t flags, char const* message, size_t messageLength) const override
+		void WriteImpl(uint32_t /*flags*/, char const* /*message*/, size_t /*messageLength*/) const override
 		{
 			// intentionally empty
 			// omitting all messages
 		}
-		void WriteImpl(uint32_t flags, wchar_t const* message, size_t messageLength) const override
+		void WriteImpl(uint32_t /*flags*/, wchar_t const* /*message*/, size_t /*messageLength*/) const override
 		{
 			// intentionally empty
 			// omitting all messages
