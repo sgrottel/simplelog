@@ -1,5 +1,5 @@
 // SimpleLog.hpp
-// Version: 3.3.3
+// Version: 3.3.4
 //
 // Copyright 2022-2026 SGrottel (www.sgrottel.de)
 //
@@ -19,7 +19,7 @@
 
 #define SIMPLELOG_VER_MAJOR 3
 #define SIMPLELOG_VER_MINOR 3
-#define SIMPLELOG_VER_PATCH 3
+#define SIMPLELOG_VER_PATCH 4
 #define SIMPLELOG_VER_BUILD 0
 
 #if !defined(__cplusplus)
@@ -82,7 +82,7 @@ namespace sgrottel
 		/// <summary>
 		/// Patch version number constant
 		/// </summary>
-		static constexpr int const VERSION_PATCH = 3;
+		static constexpr int const VERSION_PATCH = 4;
 
 		/// <summary>
 		/// Build version number constant
@@ -436,6 +436,8 @@ namespace sgrottel
 		ISimpleLog() = default;
 		virtual ~ISimpleLog() = default;
 	};
+
+#ifndef SIMPLELOG_INTERFACE_ONLY
 
 	/// <summary>
 	/// A null implementation of ISimpleLog
@@ -1463,4 +1465,6 @@ namespace sgrottel
 			OutputDebugStringW(outputCopy.c_str());
 		}
 	};
+
+#endif /* SIMPLELOG_INTERFACE_ONLY */
 }
